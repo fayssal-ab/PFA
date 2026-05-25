@@ -1,0 +1,8 @@
+package com.emsi.pfa.repository;
+import org.springframework.data.jpa.repository.JpaRepository;
+import com.emsi.pfa.model.Status;
+import java.util.Optional;
+public interface StatusRepository extends JpaRepository<Status, Long> {
+        boolean existsByStatus(String status);
+        Optional<Status> findByStatus(String status);
+}

@@ -1,0 +1,14 @@
+{
+    "configurations": [
+        {
+            "type": "java",
+            "name": "Spring Boot-PfaApplication<pfa>",
+            "request": "launch",
+            "cwd": "${workspaceFolder}",
+            "mainClass": "com.emsi.pfa.PfaApplication",
+            "projectName": "pfa",
+            "args": "",
+            "envFile": "${workspaceFolder}/.env"
+        }
+    ]
+}

@@ -1,0 +1,62 @@
+package com.emsi.pfa.model;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+
+
+@Entity
+public class ReponseReclamation {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private long id;
+    String reponse;
+    @ManyToOne
+    @JoinColumn(name = "agent_id")
+    private Agent agent;
+    @ManyToOne
+    @JoinColumn(name = "reclamation_id")
+    private Reclamation reclamation;
+
+     public ReponseReclamation() {}
+     
+    public long getId() {
+         return id;
+     }
+
+
+     public String getReponse() {
+         return reponse;
+     }
+
+     public void setReponse(String reponse) {
+         this.reponse = reponse;
+     }
+    
+     public Agent getAgent() {
+         return agent;
+     }
+
+     public void setAgent(Agent agent) {
+         this.agent = agent;
+     }
+
+     public Reclamation getReclamation() {
+         return reclamation;
+     }
+
+     public void setReclamation(Reclamation reclamation) {
+         this.reclamation = reclamation;
+     }
+
+
+
+
+
+
+    
+     
+
+}
