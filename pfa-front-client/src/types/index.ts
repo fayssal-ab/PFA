@@ -18,6 +18,10 @@ export interface AuthUser {
   prenom?: string;
   email?: string;
   role?: string;
+  userId?: number;
+  clientId?: number;
+  agentId?: number;
+  managerId?: number;
   exp?: number;
   iat?: number;
 }

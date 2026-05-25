@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
 import DashboardLayout from "../../../components/layouts/DashboardLayout";
 import api from "../../../lib/axiosInstance";
-import { Search, AlertTriangle, Trash2, Filter, X } from "lucide-react";
-import { Reclamation, Status, Priority, Categorie, ApiResponse } from "../../../types";
+import { Search, AlertTriangle, Trash2, Filter, X, UserCheck, Send } from "lucide-react";
+import { Reclamation, Status, Priority, Categorie, ApiResponse, Agent } from "../../../types";
 
 export default function ReclamationsPage() {
   const [recs, setRecs] = useState<Reclamation[]>([]);
@@ -17,7 +17,14 @@ export default function ReclamationsPage() {
   const [filterCategorie, setFilterCategorie] = useState<string>("");
   const [showFilters, setShowFilters] = useState<boolean>(false);
   const [selectedCategorie, setSelectedCategorie] = useState<string | null>(null);
+  const [showAffectModal, setShowAffectModal] = useState<boolean>(false);
+  const [selectedReclamation, setSelectedReclamation] = useState<Reclamation | null>(null);
 
+  const [agents, setAgents] = useState<Agent[]>([]);
+  const [selectedAgent, setSelectedAgent] = useState<string>("");
+  const [commentaire, setCommentaire] = useState<string>("");
+
+const [affectLoading, setAffectLoading] = useState<boolean>(false);
   useEffect(() => { 
     load(); 
     loadFilters();
@@ -49,6 +56,60 @@ export default function ReclamationsPage() {
       console.error(e); 
     } finally { 
       setLoading(false); 
+    }
+  };
+  const loadAgents = async () => {
+
+  try {
+    const r = await api.get<ApiResponse<Agent>>(
+      "/agents/get-agents",
+      {
+        params: {
+          page: 0,
+          size: 100
+        }
+      }
+    );
+
+    setAgents(r.data?.content || []);
+    } catch (e) {
+    console.error(e);
+  } finally {
+    }
+  };
+  const openAffectModal = async (reclamation: Reclamation) => {
+    setSelectedReclamation(reclamation);
+    setShowAffectModal(true);
+
+    setSelectedAgent("");
+    setCommentaire("");
+
+    await loadAgents();
+  };
+
+  const handleAffectation = async () => {
+    if (!selectedAgent || !selectedReclamation) return;
+
+    setAffectLoading(true);
+
+    try {
+      await api.post("/affectations/create-affectation", {
+      commentaire,
+      reclamation: {
+        id: selectedReclamation.id
+      },
+      agent: {
+        id: Number(selectedAgent)
+      }
+    });
+
+      setShowAffectModal(false);
+
+      load();
+    } catch (e) {
+      console.error(e);
+    } finally {
+    setAffectLoading(false);
     }
   };
 
@@ -307,10 +368,10 @@ export default function ReclamationsPage() {
                         {priorities.map(p => <option key={p.id} value={p.id}>{p.priority}</option>)}
                       </select>
                     </td>
-                    <td className="px-5 py-3 text-[12px] text-gray-400">
+                    <td className="px-5 py-3">
                       {r.dateDepot ? new Date(r.dateDepot).toLocaleDateString("fr-FR") : "—"}
                     </td>
-                    <td className="px-5 py-3">
+                    <td className="px-5 py-3 flex items-center gap-2">
                       <button 
                         onClick={() => handleDelete(r.id)} 
                         disabled={deleting === r.id} 
@@ -322,6 +383,12 @@ export default function ReclamationsPage() {
                           <Trash2 size={14} />
                         )}
                       </button>
+                      <button
+                        onClick={() => openAffectModal(r)}
+                        className="w-8 h-8 rounded-lg flex items-center justify-center bg-indigo-50 text-indigo-600 hover:bg-indigo-100 transition-all"
+                      >
+                        <UserCheck size={15} />
+                      </button>
                     </td>
                   </tr>
                 ))
@@ -330,6 +397,102 @@ export default function ReclamationsPage() {
           </table>
         </div>
       </div>
+
+      {showAffectModal && (
+  <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    
+    <div className="w-full max-w-md bg-white rounded-2xl shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-200">
+      
+     
+      <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
+        <div>
+          <h2 className="text-lg font-bold text-[#1a1a2e]">
+            Affecter la réclamation
+          </h2>
+
+          <p className="text-sm text-gray-500 mt-1">
+            {selectedReclamation?.titre}
+          </p>
+        </div>
+
+        <button
+          onClick={() => setShowAffectModal(false)}
+          className="w-8 h-8 rounded-lg hover:bg-gray-100 flex items-center justify-center"
+        >
+          <X size={16} />
+        </button>
+      </div>
+
+      
+      <div className="p-6 space-y-5">
+
+        <div>
+          <label className="text-[12px] font-semibold text-gray-500 block mb-2 uppercase tracking-wider">
+            Agent 
+          </label>
+
+          <select
+            value={selectedAgent}
+            onChange={(e) => setSelectedAgent(e.target.value)}
+            className="w-full h-11 border border-gray-200 rounded-xl px-4 text-sm outline-none focus:border-indigo-400"
+          >
+            <option value="">
+              Sélectionner un agent
+            </option>
+
+            {agents.map((a) => (
+              <option key={a.id} value={a.id}>
+                {a.user?.nom} {a.user?.prenom}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        <div>
+          <label className="text-[12px] font-semibold text-gray-500 block mb-2 uppercase tracking-wider">
+            Commentaire
+          </label>
+
+          <textarea
+            value={commentaire}
+            onChange={(e) => setCommentaire(e.target.value)}
+            placeholder="Ajouter un commentaire..."
+            rows={4}
+            className="w-full border border-gray-200 rounded-xl p-4 text-sm outline-none resize-none focus:border-indigo-400"
+          />
+        </div>
+      </div>
+
+      <div className="px-6 py-4 border-t border-gray-100 flex justify-end gap-3">
+        
+        <button
+          onClick={() => setShowAffectModal(false)}
+          className="h-10 px-4 rounded-xl border border-gray-200 text-sm font-medium hover:bg-gray-50"
+        >
+          Annuler
+        </button>
+
+        <button
+          onClick={handleAffectation}
+          disabled={affectLoading}
+          className="h-10 px-5 rounded-xl bg-indigo-600 text-white text-sm font-medium hover:bg-indigo-700 transition-all flex items-center gap-2 disabled:opacity-50"
+        >
+          {affectLoading ? (
+            <>
+              <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+              Affectation...
+            </>
+          ) : (
+            <>
+              <Send size={15} />
+              Affecter
+            </>
+          )}
+        </button>
+      </div>
+    </div>
+  </div>
+)}
     </DashboardLayout>
   );
 }

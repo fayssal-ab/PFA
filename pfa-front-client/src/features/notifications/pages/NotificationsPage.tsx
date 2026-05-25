@@ -3,12 +3,13 @@ import DashboardLayout from "../../../components/layouts/DashboardLayout";
 import api from "../../../lib/axiosInstance";
 import { Bell, CheckCheck, Trash2, Clock } from "lucide-react";
 import { Notification } from "../../../types";
+import { useAuth } from "../../../features/auth/hooks/useAuth";
 
 export default function NotificationsPage() {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [loading, setLoading] = useState(true);
   const [deleting, setDeleting] = useState<number | null>(null);
-
+  const {user} = useAuth();
   useEffect(() => {
     loadNotifications();
   }, []);
@@ -16,7 +17,7 @@ export default function NotificationsPage() {
   const loadNotifications = async () => {
     setLoading(true);
     try {
-      const res = await api.get<Notification[]>("/notifications/get-notifications-by-client/0");
+      const res = await api.get<Notification[]>(`/notifications/get-notifications-by-client/${user?.userId}`);
       setNotifications(Array.isArray(res.data) ? res.data : []);
     } catch (error) {
       console.error("Error loading notifications:", error);
