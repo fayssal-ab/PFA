@@ -65,7 +65,8 @@ public class AffectationService {
     );
 
     ancienneNotification.setReclamation(reclamation);
-
+    ancienneNotification.setDateEnvoi(LocalDateTime.now());
+    ancienneNotification.setLue(false);
     ancienneNotification.setMessage(
         "La réclamation : "
         + reclamation.getTitre()
@@ -102,12 +103,13 @@ public class AffectationService {
     notification.setUser(agent.getUser());
 
     notification.setReclamation(reclamation);
-
+    notification.setDateEnvoi(LocalDateTime.now());
+    notification.setLue(false);
     notification.setMessage(
         "Une réclamation vous a été affectée : "
         + reclamation.getTitre()+" veuillez consulter votre réclamations"
     );
-
+    
     notificationRepository.save(notification);
     }
 
