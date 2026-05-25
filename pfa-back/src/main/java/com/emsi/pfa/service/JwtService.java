@@ -31,6 +31,22 @@ public class JwtService {
 
         return Jwts.builder()
                 .subject(user.getEmail())
+                 .claim("userId", user.getId())
+
+                .claim("clientId",
+                user.getClient() != null
+                        ? user.getClient().getId()
+                        : null)
+
+                .claim("agentId",
+                user.getAgent() != null
+                        ? user.getAgent().getId()
+                        : null)
+
+               .claim("managerId",
+                user.getManager() != null
+                        ? user.getManager().getId()
+                        : null)
                 .claim("email", user.getEmail())
                 .claim("nom", user.getNom())
                 .claim("prenom", user.getPrenom())

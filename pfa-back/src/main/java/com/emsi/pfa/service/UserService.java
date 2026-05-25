@@ -81,6 +81,11 @@ public class UserService {
                 manager.setDepartement(request.getDepartement());
                 managerRepository.save(manager);
                 break;
+            case "client":
+                Client client = new Client();
+                client.setUser(user);
+                clientRepository.save(client);
+                break;
         }
     }
 

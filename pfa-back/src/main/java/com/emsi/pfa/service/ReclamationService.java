@@ -48,7 +48,7 @@ public class ReclamationService {
             reclamation.setStatus(status);
             reclamation.setPriority(priority);
             repo.save(reclamation);
-            List<User> managers = userRepository.findByRole("manager");
+            List<User> managers = userRepository.findByRole_Name("manager");
             for(User manager : managers){
                 Notification notification = new Notification();
                 notification.setUser(manager);
