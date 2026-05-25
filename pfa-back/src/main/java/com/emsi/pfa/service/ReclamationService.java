@@ -39,13 +39,13 @@ public class ReclamationService {
     @Autowired
     private PriorityRepository priorityRepository;
 
-    public void addReclamation(Reclamation reclamation) {
+    public Reclamation addReclamation(Reclamation reclamation) {
         try {
             Status status = statusRepository.findByStatus("en attente")
                 .orElseThrow(() -> new RuntimeException("status introuvable"));
           
             reclamation.setStatus(status);
-            repo.save(reclamation);
+           Reclamation savedReclamation = repo.save(reclamation);
             List<User> managers = userRepository.findByRole_Name("manager");
             for(User manager : managers){
                 Notification notification = new Notification();
@@ -54,6 +54,7 @@ public class ReclamationService {
                 notification.setMessage("Nouvelle réclamation créée : " + reclamation.getTitre());
                 notificationRepository.save(notification);
             }
+            return savedReclamation;
         } catch (Exception e) {
             throw new RuntimeException("Erreur lors de l'ajout de la réclamation : " + e.getMessage());
         }

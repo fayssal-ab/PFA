@@ -20,9 +20,8 @@ public class ReclamationController {
     private UserRepository userRepository;
 
     @PostMapping("/add-reclamation")
-    public String addReclamation(@RequestBody Reclamation reclamation){
-        service.addReclamation(reclamation);
-        return "reclamation ajouté avec succées";
+    public Reclamation addReclamation(@RequestBody Reclamation reclamation){
+        return service.addReclamation(reclamation);
     }
 
     @PutMapping("/update-reclamation/{id}")

@@ -30,6 +30,7 @@ export default function MesReclamationsPage() {
   const [newReponse, setNewReponse] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const { user } = useAuth();
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
   useEffect(() => {
     loadData();
@@ -93,7 +94,7 @@ export default function MesReclamationsPage() {
     e.preventDefault();
     setSubmitting(true);
     try {
-      await api.post("/reclamations/add-reclamation", {
+      const recResponse = await api.post("/reclamations/add-reclamation", {
         titre: formData.titre,
         description: formData.description,
         client: {
@@ -102,6 +103,24 @@ export default function MesReclamationsPage() {
         categorie: { id: parseInt(formData.categorieId) },
         priority: { id: parseInt(formData.priorityId) }
       });
+          const reclamationId = recResponse.data.id;
+
+    if (selectedFile) {
+
+      const fileData = new FormData();
+
+      fileData.append("file", selectedFile);
+
+      await api.post(
+        `/piece-jointes/upload/${reclamationId}`,
+        fileData,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data"
+          }
+        }
+      );
+    }
       setShowForm(false);
       setFormData({ titre: "", description: "", categorieId: "", priorityId: "" });
       loadData();
@@ -397,6 +416,21 @@ export default function MesReclamationsPage() {
                   ))}
                 </select>
               </div>
+              <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+               Pièce jointe
+                </label>
+
+  <input
+    type="file"
+    onChange={(e) => {
+      if (e.target.files && e.target.files.length > 0) {
+        setSelectedFile(e.target.files[0]);
+      }
+    }}
+    className="w-full px-4 py-2 rounded-lg border border-gray-200 dark:border-gray-700"
+  />
+</div>
               <div className="flex gap-3 pt-3">
                 <button
                   type="button"
