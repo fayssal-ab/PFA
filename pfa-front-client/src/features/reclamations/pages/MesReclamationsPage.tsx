@@ -7,6 +7,7 @@ import {
   ArrowLeft, Send, MessageCircle, Paperclip, X
 } from "lucide-react";
 import { Reclamation, ApiResponse, CategorieReclamation, Priority, Status, ReponseReclamation } from "../../../types";
+import { useAuth } from "../../../features/auth/hooks/useAuth";
 
 export default function MesReclamationsPage() {
   const { id } = useParams<{ id: string }>();
@@ -28,6 +29,7 @@ export default function MesReclamationsPage() {
   });
   const [newReponse, setNewReponse] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const { user } = useAuth();
 
   useEffect(() => {
     loadData();
@@ -94,6 +96,9 @@ export default function MesReclamationsPage() {
       await api.post("/reclamations/add-reclamation", {
         titre: formData.titre,
         description: formData.description,
+        client: {
+        id: user?.clientId
+        },
         categorie: { id: parseInt(formData.categorieId) },
         priority: { id: parseInt(formData.priorityId) }
       });

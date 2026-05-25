@@ -43,10 +43,8 @@ public class ReclamationService {
         try {
             Status status = statusRepository.findByStatus("en attente")
                 .orElseThrow(() -> new RuntimeException("status introuvable"));
-            Priority priority = priorityRepository.findByPriority("pas classifié")
-                .orElseThrow(() -> new RuntimeException("priorité introuvable"));
+          
             reclamation.setStatus(status);
-            reclamation.setPriority(priority);
             repo.save(reclamation);
             List<User> managers = userRepository.findByRole_Name("manager");
             for(User manager : managers){
