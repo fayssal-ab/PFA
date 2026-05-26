@@ -9,6 +9,7 @@ import NotificationsPage from "./features/notifications/pages/NotificationsPage"
 import SettingsPage from "./features/settings/pages/SettingsPage";
 import MesAffectationsPage from "./features/affectations/pages/MesAffectationsPage";
 import ProtectedRoute from "./middleware/ProtectedRoute";
+import AffectationDetailPage from "features/affectations/pages/AffectationDetailPage";
 
 export default function App() {
   return (
@@ -76,6 +77,15 @@ export default function App() {
           element={
             <ProtectedRoute allowedRoles={["admin"]}>
               <SettingsPage />
+            </ProtectedRoute>
+          } 
+        />
+
+        <Route 
+          path="/agent/affectations/:id" 
+          element={
+            <ProtectedRoute allowedRoles={["agent"]}>
+              <AffectationDetailPage />
             </ProtectedRoute>
           } 
         />

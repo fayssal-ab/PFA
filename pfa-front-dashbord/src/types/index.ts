@@ -148,3 +148,21 @@ export interface SidebarCategorieProps {
   onSelectCategorie: (categorie: string | null) => void;
   loading: boolean;
 }
+
+export interface Commentaire {
+  id: number;
+  contenu: string;
+  dateCommentaire?: string;
+  user?: User;
+  reclamation?: Reclamation;
+}
+
+export interface PieceJointe {
+  id: number;
+
+  fichier?: string;
+
+  reclamation?: Reclamation;
+
+  user?: User;
+}

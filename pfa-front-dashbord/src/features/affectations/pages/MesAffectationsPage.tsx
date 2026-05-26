@@ -3,12 +3,15 @@ import DashboardLayout from "../../../components/layouts/DashboardLayout";
 import api from "../../../lib/axiosInstance";
 import { ClipboardList, Clock, MessageSquare, User } from "lucide-react";
 import { Affectation, ApiResponse } from "../../../types";
+import { Eye } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 export default function MesAffectationsPage() {
   const [affectations, setAffectations] = useState<Affectation[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [page, setPage] = useState<number>(0);
   const [totalPages, setTotalPages] = useState<number>(0);
+  const navigate = useNavigate();
 
   useEffect(() => { load(); }, [page]);
 
@@ -103,6 +106,19 @@ export default function MesAffectationsPage() {
                   )}
                   <div className="text-[11px] text-gray-400 bg-gray-50 px-2 py-1 rounded-md">
                     {a.reclamation?.categorie?.categorie || "—"}
+                  </div>
+                  <div className="text-[11px] text-gray-400 bg-gray-50 px-2 py-1 rounded-md">
+                    <button
+                      onClick={() =>
+                         navigate(
+                          `/agent/affectations/${a.reclamation?.id}`
+                             )
+                          }
+                      className="h-9 px-4 rounded-xl bg-indigo-600 text-white text-[13px] font-medium hover:bg-indigo-700 transition-all flex items-center gap-2"
+                    >
+                        <Eye size={14} />
+                         Détails
+                    </button>
                   </div>
                 </div>
               </div>
