@@ -5,7 +5,7 @@ import { useAuth } from "../auth/hooks/useAuth";
 import { useNavigate } from "react-router-dom";
 import { 
   AlertTriangle, Clock, CheckCircle2, TrendingUp, 
-  ArrowUpRight, Eye, MessageCircle, Calendar
+  ArrowUpRight, Eye, MessageCircle, Calendar ,Paperclip
 } from "lucide-react";
 import { Reclamation, ApiResponse } from "../../types";
 
@@ -22,6 +22,7 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true);
   const [reclamations, setReclamations] = useState<Reclamation[]>([]);
   const [stats, setStats] = useState<ClientStats>({ total: 0, enCours: 0, resolues: 0, enAttente: 0 });
+  const [uploading, setUploading] = useState(false);
 
   useEffect(() => {
     loadData();
@@ -52,7 +53,40 @@ export default function DashboardPage() {
       setLoading(false);
     }
   };
+const uploadFile = async (e: React.ChangeEvent<HTMLInputElement>,id :number) => {
 
+    const file = e.target.files?.[0];
+
+    if (!file) return;
+
+    const formData = new FormData();
+
+    formData.append("file", file);
+
+    setUploading(true);
+
+    try {
+
+      await api.post(`/piece-jointes/upload/${id}`,
+        formData,
+        {
+          headers: {
+            "Content-Type":
+              "multipart/form-data"
+          }
+        }
+      );
+
+
+    } catch (e) {
+
+      console.error(e);
+
+    } finally {
+
+      setUploading(false);
+    }
+  };
   const statusColor = (status?: string) => {
     if (status === "résolu") return "bg-emerald-100 text-emerald-700";
     if (status === "en cours") return "bg-amber-100 text-amber-700";
@@ -178,6 +212,20 @@ export default function DashboardPage() {
                 >
                   Détails
                 </button>
+                              <label className="h-10 px-4 rounded-xl bg-indigo-600 text-white text-sm font-medium cursor-pointer hover:bg-indigo-700 transition-all flex items-center gap-2">
+
+                <Paperclip size={15} />
+
+                {uploading
+                  ? "Upload..."
+                  : "Ajouter"}
+
+                <input
+                  type="file"
+                  className="hidden"
+                  onChange={(e) => uploadFile(e, rec.id)}
+                />
+              </label>
               </div>
             </div>
           ))}
