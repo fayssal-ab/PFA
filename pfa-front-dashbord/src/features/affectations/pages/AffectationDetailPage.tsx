@@ -496,9 +496,10 @@ export default function AffectationDetailPage() {
                     >
 
                       <div className="text-[11px] font-semibold mb-1 opacity-80">
-                        {c.user?.nom}
-                        {" "}
-                        {c.user?.prenom}
+                    {isMine
+                     ? "Vous"
+                     : `${c.user?.nom || ""} ${c.user?.prenom || ""} (${c.user?.role?.name || ""})`}
+
                       </div>
 
                       <p className="text-sm leading-relaxed">
