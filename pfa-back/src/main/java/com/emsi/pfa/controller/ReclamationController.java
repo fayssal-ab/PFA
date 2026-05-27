@@ -6,6 +6,7 @@ import org.springframework.data.domain.Page;
 import com.emsi.pfa.model.Reclamation;
 import com.emsi.pfa.service.ReclamationService;
 import com.emsi.pfa.model.User;
+import com.emsi.pfa.repository.ReclamationRepository;
 import com.emsi.pfa.repository.UserRepository;
 import org.springframework.security.core.Authentication;
 import java.util.Map;
@@ -18,6 +19,8 @@ public class ReclamationController {
     private ReclamationService service;
     @Autowired
     private UserRepository userRepository;
+    @Autowired
+    private ReclamationRepository reclamationRepository;
 
     @PostMapping("/add-reclamation")
     public Reclamation addReclamation(@RequestBody Reclamation reclamation){
@@ -37,10 +40,30 @@ public class ReclamationController {
     }
 
     @GetMapping("/get-reclamation/{id}")
-    public Reclamation getReclamation(@PathVariable Long id){
+    public Reclamation getReclamation(@PathVariable Long id, Authentication authentication){
+
+    String email = authentication.getName();
+
+    User user = userRepository.findByEmail(email)
+            .orElseThrow(() -> new RuntimeException("Utilisateur introuvable"));
+
+    Reclamation reclamation = reclamationRepository.findById(id)
+            .orElseThrow(() -> new RuntimeException("Réclamation introuvable"));
+
+    if (user.getRole().getName().equals("client")) {
+
+        if (user.getClient() == null) {
+            throw new RuntimeException("Aucun client associé");
+        }
+
+        if (!reclamation.getClient().getId()
+                .equals(user.getClient().getId())) {
+
+            throw new RuntimeException("Accès refusé");
+        }
+    }
         return service.getReclamation(id);
     }
-
     @PutMapping("/reclamation/{id}/status/{statusId}")
     public String changeStatus(@PathVariable long id, @PathVariable Long statusId){
         service.changeStatus(id,statusId);

@@ -13,6 +13,7 @@ import {
 	MessageCircle,
 	Paperclip,
 	X,
+	
 } from "lucide-react";
 import {
 	Reclamation,
@@ -30,8 +31,7 @@ export default function MesReclamationsPage() {
 	const navigate = useNavigate();
 	const [loading, setLoading] = useState(true);
 	const [reclamations, setReclamations] = useState<Reclamation[]>([]);
-	const [selectedReclamation, setSelectedReclamation] =
-		useState<Reclamation | null>(null);
+	const [selectedReclamation, setSelectedReclamation] =useState<Reclamation | null>(null);
 	const [categories, setCategories] = useState<CategorieReclamation[]>([]);
 	const [priorities, setPriorities] = useState<Priority[]>([]);
 	const [statuses, setStatuses] = useState<Status[]>([]);
@@ -48,6 +48,7 @@ export default function MesReclamationsPage() {
 	const [submitting, setSubmitting] = useState(false);
 	const { user } = useAuth();
 	const [selectedFile, setSelectedFile] = useState<File | null>(null);
+	const [uploading, setUploading] = useState(false);
 
 	useEffect(() => {
 		loadData();
@@ -112,6 +113,42 @@ export default function MesReclamationsPage() {
 			console.error("Error loading filters:", error);
 		}
 	};
+
+	const uploadFile = async (e: React.ChangeEvent<HTMLInputElement>,id :number) => {
+
+    const file = e.target.files?.[0];
+
+    if (!file) return;
+
+    const formData = new FormData();
+
+    formData.append("file", file);
+
+    setUploading(true);
+
+    try {
+
+      await api.post(`/piece-jointes/upload/${id}`,
+        formData,
+        {
+          headers: {
+            "Content-Type":
+              "multipart/form-data"
+          }
+        }
+      );
+
+
+    } catch (e) {
+
+      console.error(e);
+
+    } finally {
+
+      setUploading(false);
+    }
+  };
+
 
 	const handleCreateReclamation = async (e: React.FormEvent) => {
 		e.preventDefault();
@@ -328,6 +365,18 @@ export default function MesReclamationsPage() {
 										</>
 									)}
 								</button>
+				 				<label className="h-10 px-4 rounded-xl bg-indigo-600 text-white text-sm font-medium cursor-pointer hover:bg-indigo-700 transition-all flex items-center gap-2">
+
+                				<Paperclip size={15} />
+
+                				{uploading ? "Upload...": "Ajouter"}
+
+                				<input
+                  					type="file"
+                  					className="hidden"
+                  					onChange={(e) => uploadFile(e, selectedReclamation.id)}
+                				/>
+             					 </label>
 							</div>
 						</div>
 					)}

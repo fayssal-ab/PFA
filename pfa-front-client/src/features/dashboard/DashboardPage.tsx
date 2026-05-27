@@ -212,7 +212,7 @@ const uploadFile = async (e: React.ChangeEvent<HTMLInputElement>,id :number) => 
                 >
                   Détails
                 </button>
-                              <label className="h-10 px-4 rounded-xl bg-indigo-600 text-white text-sm font-medium cursor-pointer hover:bg-indigo-700 transition-all flex items-center gap-2">
+                  <label className="h-10 px-4 rounded-xl bg-indigo-600 text-white text-sm font-medium cursor-pointer hover:bg-indigo-700 transition-all flex items-center gap-2">
 
                 <Paperclip size={15} />
 
