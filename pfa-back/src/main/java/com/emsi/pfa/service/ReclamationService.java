@@ -4,6 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import com.emsi.pfa.model.Reclamation;
+import com.emsi.pfa.repository.AffectationRepository;
 import com.emsi.pfa.repository.NotificationRepository;
 import com.emsi.pfa.repository.PriorityRepository;
 import com.emsi.pfa.repository.ReclamationRepository;
@@ -26,6 +27,8 @@ import java.util.LinkedHashMap;
 import com.emsi.pfa.model.User;
 import com.emsi.pfa.model.Status;
 
+import org.springframework.security.core.Authentication;
+
 @Service
 public class ReclamationService {
     @Autowired
@@ -38,6 +41,8 @@ public class ReclamationService {
     private UserRepository userRepository;
     @Autowired
     private PriorityRepository priorityRepository;
+    @Autowired 
+    private AffectationRepository affectationRepository;
 
     public Reclamation addReclamation(Reclamation reclamation) {
         try {
@@ -60,10 +65,48 @@ public class ReclamationService {
         }
     }
     
-    public Reclamation getReclamation(Long id) {
-        return repo.findById(id)
-            .orElseThrow(() -> new RuntimeException("Réclamation non trouvée pour l'id: " + id));
+public Reclamation getReclamation(Long id, Authentication authentication) {
+
+    String email = authentication.getName();
+
+    User user = userRepository.findByEmail(email)
+            .orElseThrow(() -> new RuntimeException("Utilisateur introuvable"));
+
+    Reclamation reclamation = repo.findById(id)
+            .orElseThrow(() -> new RuntimeException("Réclamation introuvable"));
+
+    if (user.getRole().getName().equals("client")) {
+
+        if (user.getClient() == null) {
+            throw new RuntimeException("Aucun client associé");
+        }
+
+        if (!reclamation.getClient().getId()
+                .equals(user.getClient().getId())) {
+
+            throw new RuntimeException("Accès refusé");
+        }
     }
+
+    if (user.getRole().getName().equals("agent")) {
+
+        if (user.getAgent() == null) {
+            throw new RuntimeException("Aucun agent associé");
+        }
+
+        boolean affectationExiste = affectationRepository
+                                    .existsByAgent_IdAndReclamation_Id(
+                                         user.getAgent().getId(),
+                                         reclamation.getId()
+                                    );
+
+        if (!affectationExiste) {
+            throw new RuntimeException("Accès refusé");
+        }
+    }
+
+    return reclamation;
+}
 
     public void updateReclamation(Long id, Reclamation reclamation) {
         Reclamation existingReclamation = repo.findById(id)

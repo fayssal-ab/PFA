@@ -94,3 +94,11 @@ export interface DashboardLayoutProps {
   subtitle?: string;
   actions?: React.ReactNode;
 }
+
+export interface Commentaire {
+  id: number;
+  contenu: string;
+  dateCommentaire?: string;
+  user?: User;
+  reclamation?: Reclamation;
+}

@@ -6,6 +6,7 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import java.time.LocalDateTime;
 @Entity
 public class Historique {
     
@@ -14,7 +15,8 @@ public class Historique {
     private Long id;
     private String ancienStatus;
     private String nouveauStatus;
-    private String dateChangement;
+    private String action;
+    private LocalDateTime dateAction;
 
     @ManyToOne
     @JoinColumn(name = "user_id")
@@ -45,12 +47,22 @@ public class Historique {
         this.nouveauStatus = nouveauStatus;
     }
 
-    public String getDateChangement() {
-        return dateChangement;
+    
+
+    public String getAction() {
+        return action;
     }
 
-    public void setDateChangement(String dateChangement) {
-        this.dateChangement = dateChangement;
+    public void setAction(String action) {
+        this.action = action;
+    }
+
+    public LocalDateTime getDateAction() {
+        return dateAction;
+    }
+
+    public void setDateAction(LocalDateTime dateAction) {
+        this.dateAction = dateAction;
     }
 
     public User getUser() {

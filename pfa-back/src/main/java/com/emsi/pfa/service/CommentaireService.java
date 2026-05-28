@@ -2,11 +2,15 @@ package com.emsi.pfa.service;
 
 import org.springframework.stereotype.Service;
 import org.springframework.beans.factory.annotation.Autowired;
+
+import java.time.LocalDateTime;
 import java.util.List;
 
 import com.emsi.pfa.repository.AffectationRepository;
 import com.emsi.pfa.repository.CommentaireRepository;
 import com.emsi.pfa.repository.NotificationRepository;
+import com.emsi.pfa.repository.ReclamationRepository;
+import com.emsi.pfa.repository.UserRepository;
 import com.emsi.pfa.model.Affectation;
 import com.emsi.pfa.model.Commentaire;
 import com.emsi.pfa.model.Reclamation;
@@ -20,26 +24,38 @@ public class CommentaireService {
         private AffectationRepository affectationRepository;
     @Autowired
         private NotificationRepository notificationRepository;
+    @Autowired
+    private UserRepository userRepository;
+
+    @Autowired
+    private ReclamationRepository reclamationRepository;
+
 
     public void addCommentaire(Commentaire commentaire) {
 
+    User auteur = userRepository.findById(commentaire.getUser().getId())
+    .orElseThrow( () -> new RuntimeException("Utilisateur introuvable") );
+
+    Reclamation reclamation = reclamationRepository.findById( commentaire.getReclamation().getId() )
+    .orElseThrow(() -> new RuntimeException("Réclamation introuvable") );
+
+    commentaire.setUser(auteur);
+
+    commentaire.setReclamation(reclamation);
+
     repo.save(commentaire);
-
-    User auteur = commentaire.getUser();
-
-    Reclamation reclamation =
-        commentaire.getReclamation();
 
     Notification notification = new Notification();
 
     notification.setReclamation(reclamation);
 
+    notification.setDateEnvoi(LocalDateTime.now());
+
+    notification.setLue(false);
+
     if(auteur.getRole().getName().equals("agent")){
 
-        notification.setUser(
-            reclamation.getClient().getUser()
-        );
-
+        notification.setUser( reclamation.getClient().getUser() );
         notification.setMessage(
             "Nouvelle réponse concernant votre réclamation : "
             + reclamation.getTitre()
@@ -50,28 +66,19 @@ public class CommentaireService {
         auteur.getRole().getName().equals("client")
     ){
 
-        Affectation affectation =
-            affectationRepository
-                .findByReclamationId(
-                    reclamation.getId()
-                )
-                .orElse(null);
+        Affectation affectation = affectationRepository.findByReclamationId(reclamation.getId()).orElse(null);
 
         if(affectation != null){
 
-            notification.setUser(
-                affectation.getAgent().getUser()
-            );
-
+            notification.setUser( affectation.getAgent().getUser() );
             notification.setMessage(
                 "Le client a ajouté un commentaire sur la réclamation : "
                 + reclamation.getTitre()
             );
         }
     }
-
-    notificationRepository.save(notification);
-}
+        notificationRepository.save(notification);
+    }
 
         public List<Commentaire> getCommentairesByReclamation(Long id) {
              return repo.findAllByReclamationId(id);

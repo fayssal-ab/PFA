@@ -3,9 +3,12 @@ package com.emsi.pfa.controller;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.data.domain.Page;
+
 import com.emsi.pfa.model.Reclamation;
-import com.emsi.pfa.service.ReclamationService;
 import com.emsi.pfa.model.User;
+
+import com.emsi.pfa.service.ReclamationService;
+
 import com.emsi.pfa.repository.UserRepository;
 import org.springframework.security.core.Authentication;
 import java.util.Map;
@@ -18,6 +21,7 @@ public class ReclamationController {
     private ReclamationService service;
     @Autowired
     private UserRepository userRepository;
+    
 
     @PostMapping("/add-reclamation")
     public Reclamation addReclamation(@RequestBody Reclamation reclamation){
@@ -37,10 +41,10 @@ public class ReclamationController {
     }
 
     @GetMapping("/get-reclamation/{id}")
-    public Reclamation getReclamation(@PathVariable Long id){
-        return service.getReclamation(id);
-    }
+    public Reclamation getReclamation(@PathVariable Long id, Authentication authentication){
 
+        return service.getReclamation(id, authentication);
+    }
     @PutMapping("/reclamation/{id}/status/{statusId}")
     public String changeStatus(@PathVariable long id, @PathVariable Long statusId){
         service.changeStatus(id,statusId);

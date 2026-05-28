@@ -1,5 +1,6 @@
 package com.emsi.pfa.controller;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.UrlResource;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -13,7 +14,13 @@ import com.emsi.pfa.model.Reclamation;
 import com.emsi.pfa.service.PieceJointeService;
 import org.springframework.security.core.Authentication;
 import org.springframework.data.domain.Page;
+import org.springframework.http.ResponseEntity;
+
 import java.io.IOException;
+import java.nio.file.Paths;
+import org.springframework.core.io.Resource;
+import org.springframework.http.HttpHeaders;
+import java.nio.file.Path;
 
 @RestController
 @RequestMapping("/piece-jointes")
@@ -76,8 +83,9 @@ public class PieceJointeController {
 
         return service.getPiecesByReclamation(reclamationId, page, size);
         }
-         @GetMapping("/reclamation/{reclamationId}")
-    public Page<PieceJointe> getPiecesByRole(@PathVariable Long reclamationId, @RequestParam String role, @RequestParam int page, @RequestParam int size, Authentication authentication){
+        
+        @GetMapping("/reclamation/{reclamationId}")
+        public Page<PieceJointe> getPiecesByRole(@PathVariable Long reclamationId, @RequestParam String role, @RequestParam int page, @RequestParam int size, Authentication authentication){
 
         String email = authentication.getName();
 
@@ -100,8 +108,24 @@ public class PieceJointeController {
         return service.getPiecesByRoleAndReclamation(reclamationId, role,page, size);
     }
 
-        @GetMapping("/reclamation/{reclamationId}/all")
+
+    @GetMapping("/reclamation/{reclamationId}/all")
     public Page<PieceJointe> getAllPieces(@PathVariable Long reclamationId, @RequestParam int page, @RequestParam int size){
         return service.getPiecesByReclamation(reclamationId,page,size);
     }
+
+
+    @GetMapping("/download/{filename}")
+    public ResponseEntity<Resource> downloadFile(@PathVariable String filename) throws IOException {
+
+    Path filePath = Paths.get( "uploads").resolve(filename);
+    Resource resource =new UrlResource( filePath.toUri() );
+    if(!resource.exists()){
+     throw new RuntimeException("Fichier introuvable");
+    }
+    return ResponseEntity.ok()
+        .header( HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" +  resource.getFilename() + "\"")
+        .body(resource);
+}
+
 }
