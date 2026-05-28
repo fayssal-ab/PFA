@@ -9,5 +9,6 @@ public interface AffectationRepository extends JpaRepository<Affectation, Long> 
         Page<Affectation> findByAgentId(Long agentId, Pageable pageable);
         boolean existsByReclamationId(Long reclamationId);
         Optional<Affectation> findByReclamationId(Long reclamationId);
+        boolean existsByAgent_IdAndReclamation_Id(Long agentId,Long reclamationId);
 
 }
