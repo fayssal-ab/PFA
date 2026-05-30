@@ -5,6 +5,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import com.emsi.pfa.model.Reclamation;
 import com.emsi.pfa.repository.AffectationRepository;
+import com.emsi.pfa.repository.HistoriqueRepository;
 import com.emsi.pfa.repository.NotificationRepository;
 import com.emsi.pfa.repository.PriorityRepository;
 import com.emsi.pfa.repository.ReclamationRepository;
@@ -16,6 +17,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import java.time.LocalDateTime;
 import java.time.LocalDate;
+
+import com.emsi.pfa.model.Historique;
 import com.emsi.pfa.model.Notification;
 import com.emsi.pfa.model.Priority;
 
@@ -43,6 +46,10 @@ public class ReclamationService {
     private PriorityRepository priorityRepository;
     @Autowired 
     private AffectationRepository affectationRepository;
+    @Autowired
+        private CurrentUserService currentUserService;
+    @Autowired
+        private HistoriqueRepository historiqueRepository;
 
     public Reclamation addReclamation(Reclamation reclamation) {
         try {
@@ -132,6 +139,23 @@ public Reclamation getReclamation(Long id, Authentication authentication) {
             .orElseThrow(() -> new RuntimeException("Réclamation non trouvée pour l'id: " + id));
         Status status = statusRepository.findById(statusId)
             .orElseThrow(() -> new RuntimeException("status non trouvée pour l'id: " + statusId));
+
+        User currentUser = currentUserService.getCurrentUser();
+
+        Historique historique = new Historique();
+        historique.setAncienStatus(reclamation.getStatus().getStatus());
+        historique.setNouveauStatus(status.getStatus());
+        historique.setAction(
+        "Statut changé de "
+        + reclamation.getStatus().getStatus()
+        + " vers "
+        + status.getStatus()+"reclamation "+reclamation.getId()
+        );
+        historique.setReclamation(reclamation);
+        historique.setUser(currentUser);
+        historique.setDateAction(LocalDateTime.now());
+        historiqueRepository.save(historique);
+
         reclamation.setStatus(status);
         repo.save(reclamation);
         Notification notification = new Notification();

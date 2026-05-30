@@ -1,4 +1,3 @@
-
 import { FileText, Paperclip, Download } from "lucide-react";
 
 import { PieceJointe } from "../../../types";
@@ -6,11 +5,16 @@ import { PieceJointe } from "../../../types";
 type Props = {
 	clientFiles: PieceJointe[];
 	downloadFile: (filename?: string) => void;
+	page: number;
+	totalPages: number;
+	onPageChange: (page: number) => void;
 };
-
 export default function ClientFilesSection({
 	clientFiles,
 	downloadFile,
+	page,
+	totalPages,
+	onPageChange,
 }: Props) {
 	return (
 		<div className="bg-[#111827]/80 backdrop-blur-xl rounded-3xl border border-white/10 shadow-2xl p-6">
@@ -46,6 +50,27 @@ export default function ClientFilesSection({
 						</div>
 					))
 				)}
+			</div>
+			<div className="flex items-center justify-center gap-4 mt-5">
+				<button
+					disabled={page === 0}
+					onClick={() => onPageChange(page - 1)}
+					className="px-4 py-2 rounded-xl bg-slate-700 text-white disabled:opacity-50"
+				>
+					Précédent
+				</button>
+
+				<span className="text-white font-medium">
+					{page + 1} / {Math.max(totalPages, 1)}
+				</span>
+
+				<button
+					disabled={page + 1 >= totalPages}
+					onClick={() => onPageChange(page + 1)}
+					className="px-4 py-2 rounded-xl bg-slate-700 text-white disabled:opacity-50"
+				>
+					Suivant
+				</button>
 			</div>
 		</div>
 	);
