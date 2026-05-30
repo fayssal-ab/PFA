@@ -18,6 +18,8 @@ const nav = [
   { to: "/mes-affectations", icon: ClipboardList, roles: ["agent"], label: "Mes affectations" },
   { to: "/notifications", icon: Bell, roles: ["admin", "manager", "agent"], label: "Notifications" },
   { to: "/settings", icon: Settings, roles: ["admin"], label: "Paramètres" },
+  { to: "/historique", icon: Activity, roles: ["admin"], label: "historique" },
+
 ];
 
 export default function Sidebar() {

@@ -30,7 +30,7 @@ export default function AgentsPage() {
 	const toggle = async (a: Agent) => {
 		setToggling(a.id);
 		try {
-			await api.put(`/agents/${a.id}`, { ...a, disponible: !a.disponible });
+			await api.put(`/agents/update-disponibilte/${a.id}`, !a.disponible);
 			fetch();
 		} catch (e) {
 			console.error(e);

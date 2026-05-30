@@ -3,7 +3,7 @@ package com.emsi.pfa.service;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
-import com.emsi.pfa.model.Reclamation;
+
 import com.emsi.pfa.repository.AffectationRepository;
 import com.emsi.pfa.repository.HistoriqueRepository;
 import com.emsi.pfa.repository.NotificationRepository;
@@ -21,14 +21,16 @@ import java.time.LocalDate;
 import com.emsi.pfa.model.Historique;
 import com.emsi.pfa.model.Notification;
 import com.emsi.pfa.model.Priority;
+import com.emsi.pfa.model.Reclamation;
+import com.emsi.pfa.model.User;
+import com.emsi.pfa.model.Status;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Map;
 import java.util.LinkedHashMap;
-import com.emsi.pfa.model.User;
-import com.emsi.pfa.model.Status;
+
 
 import org.springframework.security.core.Authentication;
 

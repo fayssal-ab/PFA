@@ -112,7 +112,7 @@ export default function ReclamationDetailPage() {
 		const res = await api.get(`/reponse-reclamations/get-reponse/${id}`, {
 			params: {
 				page,
-				size: 5,
+				size: 3,
 			},
 		});
 
@@ -200,29 +200,6 @@ export default function ReclamationDetailPage() {
 								Historique des réponses de traitement
 							</p>
 						</div>
-						{reponseTotalPages > 1 && (
-							<div className="flex items-center justify-center gap-4 mt-6">
-								<button
-									disabled={reponsePage === 0}
-									onClick={() => setReponsePage(Math.max(0, reponsePage - 1))}
-									className="px-4 py-2 rounded-xl bg-slate-700 text-white disabled:opacity-50"
-								>
-									Précédent
-								</button>
-
-								<span className="text-white font-medium">
-									{reponsePage + 1} / {Math.max(reponseTotalPages, 1)}
-								</span>
-
-								<button
-									disabled={reponsePage >= reponseTotalPages - 1}
-									onClick={() => setReponsePage(reponsePage + 1)}
-									className="px-4 py-2 rounded-xl bg-slate-700 text-white disabled:opacity-50"
-								>
-									Suivant
-								</button>
-							</div>
-						)}
 					</div>
 
 					{reponses.length === 0 ? (
@@ -278,6 +255,29 @@ export default function ReclamationDetailPage() {
 									</div>
 								</div>
 							))}
+						</div>
+					)}
+					{reponseTotalPages > 1 && (
+						<div className="flex items-center justify-center gap-4 mt-6">
+							<button
+								disabled={reponsePage === 0}
+								onClick={() => setReponsePage(Math.max(0, reponsePage - 1))}
+								className="px-4 py-2 rounded-xl bg-slate-700 text-white disabled:opacity-50"
+							>
+								Précédent
+							</button>
+
+							<span className="text-white font-medium">
+								{reponsePage + 1} / {Math.max(reponseTotalPages, 1)}
+							</span>
+
+							<button
+								disabled={reponsePage >= reponseTotalPages - 1}
+								onClick={() => setReponsePage(reponsePage + 1)}
+								className="px-4 py-2 rounded-xl bg-slate-700 text-white disabled:opacity-50"
+							>
+								Suivant
+							</button>
 						</div>
 					)}
 				</div>

@@ -12,7 +12,7 @@ import ProtectedRoute from "./middleware/ProtectedRoute";
 import AffectationDetailPage from "features/affectations/pages/AffectationDetailPage";
 import MesReponsesPage from "features/agents/pages/mesReponses";
 import ReclamationDetailPage from "features/reclamations/pages/DetailReclamation";
-
+import HistoriquePage from "features/historique/pages/Historique";
 export default function App() {
 	return (
 		<BrowserRouter>
@@ -105,6 +105,14 @@ export default function App() {
 					element={
 						<ProtectedRoute allowedRoles={["admin", "manager"]}>
 							<ReclamationDetailPage />
+						</ProtectedRoute>
+					}
+				/>
+				<Route
+					path="/historique"
+					element={
+						<ProtectedRoute allowedRoles={["admin"]}>
+							<HistoriquePage />
 						</ProtectedRoute>
 					}
 				/>

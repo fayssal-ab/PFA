@@ -18,6 +18,7 @@ import com.emsi.pfa.service.AgentService;
 import org.springframework.security.core.Authentication;
 import java.util.List;
 
+
 @RestController
 @RequestMapping("/agents")
 public class AgentController {
@@ -69,6 +70,11 @@ public class AgentController {
     public List<Agent> getAllAgents(){
 
     return service.getAllAgents();
+    }
+    @PutMapping("update-disponibilte/{id}")
+    public String updateDisponibilite(@PathVariable Long id, @RequestBody boolean disponible) {
+        service.updateDiponibilite(id,disponible);
+        return "mis a jour avec succée";
     }
 }
 
