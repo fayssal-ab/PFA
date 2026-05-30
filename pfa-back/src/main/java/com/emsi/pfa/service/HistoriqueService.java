@@ -11,6 +11,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
 import com.emsi.pfa.model.Historique;
+import org.springframework.data.domain.Sort;
 
 import com.emsi.pfa.repository.HistoriqueRepository;
 import com.emsi.pfa.dto.StatistiqueHistoriqueDTO;
@@ -18,18 +19,31 @@ import com.emsi.pfa.dto.StatistiqueHistoriqueDTO;
 public class HistoriqueService {
     @Autowired
         private HistoriqueRepository repo;
+   public Page<Historique> getHistorique(
+        int page,
+        int size,
+        String action,
+        Long userId,
+        LocalDate dateDebut,
+        LocalDate dateFin) {
 
-    public Page<Historique> getHistorique(int page, int size) {
+    Pageable pageable = PageRequest.of(
+            page,
+            size,
+            Sort.by("dateAction").descending()
+    );
 
-        Pageable pageable = PageRequest.of(page, size);
-
-        return repo.findAll(pageable);
-    }
-
+    return repo.filtrerHistorique(
+            action,
+            userId,
+            dateDebut,
+            dateFin,
+            pageable
+    );
+}
      public StatistiqueHistoriqueDTO getStatistiques() {
 
-        StatistiqueHistoriqueDTO dto =
-                new StatistiqueHistoriqueDTO();
+        StatistiqueHistoriqueDTO dto = new StatistiqueHistoriqueDTO();
 
         LocalDateTime debutJour =
                 LocalDate.now().atStartOfDay();

@@ -2,7 +2,14 @@ import { useEffect, useState } from "react";
 import DashboardLayout from "../../../components/layouts/DashboardLayout";
 import api from "../../../lib/axiosInstance";
 
-import { Activity, Calendar, User, ArrowRight } from "lucide-react";
+import {
+	Activity,
+	Calendar,
+	User,
+	ArrowRight,
+	Filter,
+	Search,
+} from "lucide-react";
 
 export default function HistoriquePage() {
 	const [historiques, setHistoriques] = useState<any[]>([]);
@@ -11,12 +18,20 @@ export default function HistoriquePage() {
 	const [loading, setLoading] = useState(true);
 
 	const [page, setPage] = useState(0);
-
 	const [totalPages, setTotalPages] = useState(0);
+
+	const [action, setAction] = useState("");
+	const [dateDebut, setDateDebut] = useState("");
+	const [dateFin, setDateFin] = useState("");
+	const [filters, setFilters] = useState({
+		action: "",
+		dateDebut: "",
+		dateFin: "",
+	});
 
 	useEffect(() => {
 		loadData();
-	}, [page]);
+	}, [page, filters]);
 
 	const loadData = async () => {
 		try {
@@ -27,6 +42,9 @@ export default function HistoriquePage() {
 					params: {
 						page,
 						size: 10,
+						action: filters.action || undefined,
+						dateDebut: filters.dateDebut || undefined,
+						dateFin: filters.dateFin || undefined,
 					},
 				}),
 				api.get("/historiques/get-statistiques"),
@@ -44,6 +62,28 @@ export default function HistoriquePage() {
 		} finally {
 			setLoading(false);
 		}
+	};
+
+	const appliquerFiltre = () => {
+		setFilters({
+			action,
+			dateDebut,
+			dateFin,
+		});
+		setPage(0);
+	};
+	const resetFiltres = () => {
+		setAction("");
+		setDateDebut("");
+		setDateFin("");
+
+		setFilters({
+			action: "",
+			dateDebut: "",
+			dateFin: "",
+		});
+
+		setPage(0);
 	};
 
 	if (loading) {
@@ -70,6 +110,70 @@ export default function HistoriquePage() {
 				<p className="text-gray-400 text-[15px] mt-2">
 					Suivi des actions effectuées dans le système
 				</p>
+			</div>
+
+			{/* FILTRES */}
+
+			<div className="bg-[#111827]/80 backdrop-blur-xl rounded-3xl border border-white/10 p-6 mb-8">
+				<div className="flex items-center gap-2 mb-5">
+					<Filter className="text-indigo-400" size={18} />
+					<h3 className="text-white font-semibold">Filtres avancés</h3>
+				</div>
+
+				<div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+					<div>
+						<label className="text-gray-400 text-sm block mb-2">Action</label>
+
+						<input
+							type="text"
+							value={action}
+							onChange={(e) => setAction(e.target.value)}
+							placeholder="Ex: Changement statut"
+							className="w-full bg-[#020817] border border-white/10 rounded-xl px-4 py-3 text-white"
+						/>
+					</div>
+
+					<div>
+						<label className="text-gray-400 text-sm block mb-2">
+							Date début
+						</label>
+
+						<input
+							type="date"
+							value={dateDebut}
+							onChange={(e) => setDateDebut(e.target.value)}
+							className="w-full bg-[#020817] border border-white/10 rounded-xl px-4 py-3 text-white"
+						/>
+					</div>
+
+					<div>
+						<label className="text-gray-400 text-sm block mb-2">Date fin</label>
+
+						<input
+							type="date"
+							value={dateFin}
+							onChange={(e) => setDateFin(e.target.value)}
+							className="w-full bg-[#020817] border border-white/10 rounded-xl px-4 py-3 text-white"
+						/>
+					</div>
+
+					<div className="flex items-end gap-3">
+						<button
+							onClick={appliquerFiltre}
+							className="flex-1 bg-gradient-to-r from-indigo-500 to-purple-600 text-white rounded-xl px-4 py-3 font-medium flex items-center justify-center gap-2"
+						>
+							<Search size={16} />
+							Filtrer
+						</button>
+
+						<button
+							onClick={resetFiltres}
+							className="px-4 py-3 rounded-xl border border-white/10 text-white bg-[#020817]"
+						>
+							Reset
+						</button>
+					</div>
+				</div>
 			</div>
 
 			<div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-5 gap-5 mb-8">
@@ -120,7 +224,7 @@ export default function HistoriquePage() {
 						<div key={h.id} className="relative pl-16">
 							<div className="absolute left-[14px] top-8 w-6 h-6 rounded-full bg-indigo-500 border-4 border-[#020817]" />
 
-							<div className="bg-[#111827]/80 backdrop-blur-xl rounded-3xl border border-white/10 shadow-2xl p-6 hover:border-indigo-500/30 transition-all">
+							<div className="bg-[#111827]/80 backdrop-blur-xl rounded-3xl border border-white/10 shadow-2xl p-6">
 								<div className="flex flex-col lg:flex-row lg:justify-between gap-4">
 									<div>
 										<div className="flex items-center gap-3 mb-3">
@@ -159,9 +263,7 @@ export default function HistoriquePage() {
 									<div className="flex items-center gap-2 text-gray-500 text-sm">
 										<Calendar size={15} />
 
-										{h.dateAction
-											? new Date(h.dateAction).toLocaleString("fr-FR")
-											: ""}
+										{new Date(h.dateAction).toLocaleString("fr-FR")}
 									</div>
 								</div>
 							</div>
