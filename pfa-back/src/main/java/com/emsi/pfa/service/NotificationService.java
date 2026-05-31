@@ -1,14 +1,24 @@
 package com.emsi.pfa.service;
 import org.springframework.stereotype.Service;
 import org.springframework.beans.factory.annotation.Autowired;
+
+import java.time.LocalDateTime;
 import java.util.List;
+
+import com.emsi.pfa.repository.HistoriqueRepository;
 import com.emsi.pfa.repository.NotificationRepository;
+import com.emsi.pfa.model.Historique;
 import com.emsi.pfa.model.Notification;
+import com.emsi.pfa.model.User;
 @Service
 public class NotificationService {
     @Autowired
         private NotificationRepository repo;
-
+    @Autowired
+        private CurrentUserService currentUserService;
+    @Autowired
+        private HistoriqueRepository historiqueRepository;
+        
         public void addNotification(Notification notification) {
             repo.save(notification);
         }
@@ -32,10 +42,22 @@ public class NotificationService {
         public void markAsRead(Long id) {
             Notification notification = repo.findById(id).orElse(null);
             if (notification != null) {
+            User currentUser = currentUserService.getCurrentUser();
+            Historique historique = new Historique();
+
+            historique.setAction(
+            currentUser.getNom()+" "+currentUser.getPrenom()+" a lu la notification #" + notification.getId()
+            );
+
+            historique.setReclamation(notification.getReclamation());
+            historique.setUser(currentUser);
+            historique.setDateAction(LocalDateTime.now());
+            historiqueRepository.save(historique);
+        }
                 notification.setLue(true);
                 repo.save(notification);
-            }
         }
+        
 
         public long getUnreadNotificationsCount(Long userId) {
             return repo.countByUserIdAndLueFalse(userId);

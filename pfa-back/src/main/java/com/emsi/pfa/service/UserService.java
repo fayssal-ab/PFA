@@ -9,6 +9,7 @@ import com.emsi.pfa.repository.ManagerRepository;
 import com.emsi.pfa.repository.RoleRepository;
 import com.emsi.pfa.repository.UserRepository;
 import com.emsi.pfa.repository.ClientRepository;
+import com.emsi.pfa.repository.HistoriqueRepository;
 import com.emsi.pfa.dto.UserRequest;
 import com.emsi.pfa.model.*;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -16,6 +17,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Optional;
 import org.springframework.transaction.annotation.Transactional;
@@ -43,6 +45,10 @@ public class UserService {
     
     @Autowired
     private ClientRepository clientRepository;
+    @Autowired
+        private CurrentUserService currentUserService;
+    @Autowired
+        private HistoriqueRepository historiqueRepository;
 
     public void createUser(UserRequest request) {
         if (userRepository.existsByEmail(request.getEmail())) {
@@ -57,6 +63,19 @@ public class UserService {
         Role role = roleRepository.findById(request.getRole().getId())
                 .orElseThrow(() -> new RuntimeException("Role pas trouve"));
 
+            User currentUser = currentUserService.getCurrentUser();
+            Historique historique = new Historique();
+
+            historique.setAction(
+            currentUser.getNom()+" "+currentUser.getPrenom()+" à ajouter un nouveau utilisateur " 
+            + user.getNom()
+            +" " +user.getPrenom()
+            );
+
+            historique.setUser(currentUser);
+            historique.setDateAction(LocalDateTime.now());
+            historiqueRepository.save(historique);
+    
         user.setRole(role);
         user.setPassword(passwordEncoder.encode(user.getPassword()));
         userRepository.save(user);
@@ -97,6 +116,19 @@ public class UserService {
         String oldRole = user.getRole().getName();
         Role newRole = roleRepository.findById(request.getRole().getId())
                 .orElseThrow(() -> new RuntimeException("Role pas trouver"));
+
+            User currentUser = currentUserService.getCurrentUser();
+            Historique historique = new Historique();
+
+            historique.setAction(
+            currentUser.getNom()+" "+currentUser.getPrenom()+" à modifier les informations d' utilisateur " 
+            + user.getNom()
+            +" " +user.getPrenom()
+            );
+
+            historique.setUser(currentUser);
+            historique.setDateAction(LocalDateTime.now());
+            historiqueRepository.save(historique);
         String newRoleName = newRole.getName();
 
         user.setNom(request.getNom());
@@ -166,6 +198,18 @@ public class UserService {
     public void deleteUser(Long id){
         User user = userRepository.findById(id)
             .orElseThrow(() -> new RuntimeException("User pas trouver"));
+                    User currentUser = currentUserService.getCurrentUser();
+            Historique historique = new Historique();
+
+            historique.setAction(
+            currentUser.getNom()+" "+currentUser.getPrenom()+" à supprimer l''utilisateur " 
+            + user.getNom()
+            +" " +user.getPrenom()
+            );
+
+            historique.setUser(currentUser);
+            historique.setDateAction(LocalDateTime.now());
+            historiqueRepository.save(historique);
         userRepository.delete(user);
     }
     

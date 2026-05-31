@@ -112,7 +112,6 @@ export default function HistoriquePage() {
 				</p>
 			</div>
 
-			{/* FILTRES */}
 
 			<div className="bg-[#111827]/80 backdrop-blur-xl rounded-3xl border border-white/10 p-6 mb-8">
 				<div className="flex items-center gap-2 mb-5">

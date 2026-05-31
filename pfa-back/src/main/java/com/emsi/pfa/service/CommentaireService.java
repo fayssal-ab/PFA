@@ -8,11 +8,13 @@ import java.util.List;
 
 import com.emsi.pfa.repository.AffectationRepository;
 import com.emsi.pfa.repository.CommentaireRepository;
+import com.emsi.pfa.repository.HistoriqueRepository;
 import com.emsi.pfa.repository.NotificationRepository;
 import com.emsi.pfa.repository.ReclamationRepository;
 import com.emsi.pfa.repository.UserRepository;
 import com.emsi.pfa.model.Affectation;
 import com.emsi.pfa.model.Commentaire;
+import com.emsi.pfa.model.Historique;
 import com.emsi.pfa.model.Reclamation;
 import com.emsi.pfa.model.User;
 import com.emsi.pfa.model.Notification;
@@ -29,7 +31,10 @@ public class CommentaireService {
 
     @Autowired
     private ReclamationRepository reclamationRepository;
-
+    @Autowired
+        private CurrentUserService currentUserService;
+    @Autowired
+        private HistoriqueRepository historiqueRepository;
 
     public void addCommentaire(Commentaire commentaire) {
 
@@ -38,7 +43,17 @@ public class CommentaireService {
 
     Reclamation reclamation = reclamationRepository.findById( commentaire.getReclamation().getId() )
     .orElseThrow(() -> new RuntimeException("Réclamation introuvable") );
+            User currentUser = currentUserService.getCurrentUser();
+            Historique historique = new Historique();
 
+            historique.setAction(
+            currentUser.getNom()+" "+currentUser.getPrenom()+" à ajouter un commentaire concernant reclamation #" 
+            +commentaire.getReclamation().getId()
+            );
+
+            historique.setUser(currentUser);
+            historique.setDateAction(LocalDateTime.now());
+            historiqueRepository.save(historique);
     commentaire.setUser(auteur);
 
     commentaire.setReclamation(reclamation);
