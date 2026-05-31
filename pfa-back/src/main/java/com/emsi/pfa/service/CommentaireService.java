@@ -57,7 +57,7 @@ public class CommentaireService {
 
         notification.setUser( reclamation.getClient().getUser() );
         notification.setMessage(
-            "Nouvelle réponse concernant votre réclamation : "
+            "Nouvelle commentaire concernant votre réclamation : "
             + reclamation.getTitre()
         );
     }

@@ -27,7 +27,7 @@ public class NotificationService {
             return repo.findById(id).orElse(null);
         }
         public List<Notification> getNotificationsByClient(Long clientId) {
-            return repo.findByUserId(clientId);
+            return repo.findByUserIdOrderByDateEnvoiDesc(clientId);
         }
         public void markAsRead(Long id) {
             Notification notification = repo.findById(id).orElse(null);
@@ -35,5 +35,9 @@ public class NotificationService {
                 notification.setLue(true);
                 repo.save(notification);
             }
+        }
+
+        public long getUnreadNotificationsCount(Long userId) {
+            return repo.countByUserIdAndLueFalse(userId);
         }
 }
