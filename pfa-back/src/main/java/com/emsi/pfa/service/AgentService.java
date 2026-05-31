@@ -37,6 +37,11 @@ public class AgentService {
 
      return repo.findAll();
     }
+    public void updateDiponibilite(Long id, boolean disponible){
+        Agent agent = repo.findById(id)
+                     .orElseThrow(() -> new RuntimeException("agent n existe pas " ));
+        agent.setDisponible(disponible);
+    }
 
     
 }

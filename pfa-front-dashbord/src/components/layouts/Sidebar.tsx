@@ -3,7 +3,7 @@ import { useAuth } from "../../features/auth/hooks/useAuth";
 import { 
   LayoutDashboard, Users, AlertTriangle, Settings, UserCog, 
   Briefcase, Bell, ClipboardList, LogOut, ChevronLeft, ChevronRight,
-  Sparkles, TrendingUp, Activity, Shield
+  Sparkles, TrendingUp, Activity, Shield,History
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import api from "../../lib/axiosInstance";
@@ -18,6 +18,8 @@ const nav = [
   { to: "/mes-affectations", icon: ClipboardList, roles: ["agent"], label: "Mes affectations" },
   { to: "/notifications", icon: Bell, roles: ["admin", "manager", "agent"], label: "Notifications" },
   { to: "/settings", icon: Settings, roles: ["admin"], label: "Paramètres" },
+  { to: "/historique", icon: History, roles: ["admin"], label: "historique" },
+
 ];
 
 export default function Sidebar() {

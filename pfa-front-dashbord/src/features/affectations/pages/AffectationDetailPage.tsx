@@ -50,6 +50,14 @@ export default function AffectationDetailPage() {
 
 	const [reponse, setReponse] = useState("");
 
+	const [clientPage, setClientPage] = useState(0);
+
+	const [clientTotalPages, setClientTotalPages] = useState(0);
+
+	const [agentPage, setAgentPage] = useState(0);
+
+	const [agentTotalPages, setAgentTotalPages] = useState(0);
+
 	useEffect(() => {
 		if (id) {
 			loadAll();
@@ -108,39 +116,43 @@ export default function AffectationDetailPage() {
 		}
 	};
 
-	const loadClientFiles = async () => {
+	const loadClientFiles = async (page: number = 0) => {
 		try {
 			const res = await api.get<ApiResponse<PieceJointe>>(
 				`/piece-jointes/reclamation/${id}`,
 				{
 					params: {
 						role: "client",
-						page: 0,
-						size: 20,
+						page,
+						size: 3,
 					},
 				},
 			);
 
-			setClientFiles(res.data?.content || []);
+			setClientFiles(res.data.content || []);
+			setClientPage(res.data.page.number);
+			setClientTotalPages(res.data.page.totalPages);
 		} catch (e) {
 			console.error(e);
 		}
 	};
 
-	const loadAgentFiles = async () => {
+	const loadAgentFiles = async (page: number = 0) => {
 		try {
 			const res = await api.get<ApiResponse<PieceJointe>>(
 				`/piece-jointes/reclamation/${id}`,
 				{
 					params: {
 						role: "agent",
-						page: 0,
-						size: 20,
+						page,
+						size: 3,
 					},
 				},
 			);
 
-			setAgentFiles(res.data?.content || []);
+			setAgentFiles(res.data.content || []);
+			setAgentPage(res.data.page.number);
+			setAgentTotalPages(res.data.page.totalPages);
 		} catch (e) {
 			console.error(e);
 		}
@@ -199,7 +211,15 @@ export default function AffectationDetailPage() {
 			setUploading(false);
 		}
 	};
+	const deleteFile = async (id: number) => {
+		try {
+			await api.delete(`/piece-jointes/delete-piece-jointe/${id}`);
 
+			await loadAgentFiles(agentPage);
+		} catch (e) {
+			console.error(e);
+		}
+	};
 	const downloadFile = async (filename?: string) => {
 		if (!filename) return;
 
@@ -275,6 +295,9 @@ export default function AffectationDetailPage() {
 					<ClientFilesSection
 						clientFiles={clientFiles}
 						downloadFile={downloadFile}
+						page={clientPage}
+						totalPages={clientTotalPages}
+						onPageChange={loadClientFiles}
 					/>
 
 					<AgentFilesSection
@@ -282,6 +305,10 @@ export default function AffectationDetailPage() {
 						downloadFile={downloadFile}
 						uploadFile={uploadFile}
 						uploading={uploading}
+						page={agentPage}
+						totalPages={agentTotalPages}
+						onPageChange={loadAgentFiles}
+						deleteFile={deleteFile}
 					/>
 				</div>
 

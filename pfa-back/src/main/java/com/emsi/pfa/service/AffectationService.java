@@ -8,13 +8,16 @@ import com.emsi.pfa.model.Affectation;
 
 import com.emsi.pfa.repository.AffectationRepository;
 import com.emsi.pfa.repository.AgentRepository;
+import com.emsi.pfa.repository.HistoriqueRepository;
 import com.emsi.pfa.repository.NotificationRepository;
 import com.emsi.pfa.repository.ReclamationRepository;
 import com.emsi.pfa.repository.StatusRepository;
 
 import com.emsi.pfa.model.Agent;
+import com.emsi.pfa.model.Historique;
 import com.emsi.pfa.model.Reclamation;
 import com.emsi.pfa.model.Status;
+import com.emsi.pfa.model.User;
 import com.emsi.pfa.model.Notification;
 
 import org.springframework.data.domain.Page;
@@ -31,25 +34,29 @@ public class AffectationService {
     @Autowired
         private ReclamationRepository reclamationRepository;
     @Autowired
-    private StatusRepository statusRepository;
+        private StatusRepository statusRepository;
     @Autowired
-    private NotificationRepository notificationRepository;
-    
+        private NotificationRepository notificationRepository;
+    @Autowired
+        private CurrentUserService currentUserService;
+    @Autowired
+        private HistoriqueRepository historiqueRepository;
 
-    public void createAffectaion(Affectation affectation){
+public void createAffectaion(Affectation affectation) {
 
     Agent agent = agentRepository.findById(
         affectation.getAgent().getId()
     ).orElseThrow(() ->
-        new RuntimeException("agent pas trouvé")
+        new RuntimeException("Agent non trouvé")
     );
 
-    Reclamation reclamation =
-        reclamationRepository.findById(
-            affectation.getReclamation().getId()
-        ).orElseThrow(() ->
-            new RuntimeException("reclamation pas trouvé")
-        );
+    Reclamation reclamation = reclamationRepository.findById(
+        affectation.getReclamation().getId()
+    ).orElseThrow(() ->
+        new RuntimeException("Réclamation non trouvée")
+    );
+
+    User currentUser = currentUserService.getCurrentUser();
 
     Affectation ancienneAffectation =
         repo.findByReclamationId(
@@ -58,30 +65,66 @@ public class AffectationService {
 
     if (ancienneAffectation != null) {
 
-    Notification ancienneNotification = new Notification();
+        Historique historique = new Historique();
 
-    ancienneNotification.setUser(
-        ancienneAffectation.getAgent().getUser()
-    );
+        historique.setAction(
+            "Réaffectation de "
+            + ancienneAffectation.getAgent().getUser().getNom()
+            + " "
+            + ancienneAffectation.getAgent().getUser().getPrenom()
+            + " vers "
+            + agent.getUser().getNom()
+            + " "
+            + agent.getUser().getPrenom()
+        );
 
-    ancienneNotification.setReclamation(reclamation);
-    ancienneNotification.setDateEnvoi(LocalDateTime.now());
-    ancienneNotification.setLue(false);
-    ancienneNotification.setMessage(
-        "La réclamation : "
-        + reclamation.getTitre()
-        + " a été réaffectée à un autre agent."
-    );
+        historique.setReclamation(reclamation);
+        historique.setUser(currentUser);
+        historique.setDateAction(LocalDateTime.now());
+        historiqueRepository.save(historique);
 
-    notificationRepository.save(ancienneNotification);
+        Notification ancienneNotification = new Notification();
 
-    repo.delete(ancienneAffectation);
+        ancienneNotification.setUser(
+            ancienneAffectation.getAgent().getUser()
+        );
+
+        ancienneNotification.setReclamation(reclamation);
+        ancienneNotification.setDateEnvoi(LocalDateTime.now());
+        ancienneNotification.setLue(false);
+
+        ancienneNotification.setMessage(
+            "La réclamation : "
+            + reclamation.getTitre()
+            + " a été réaffectée à un autre agent."
+        );
+
+        notificationRepository.save(
+            ancienneNotification
+        );
+
+        repo.delete(ancienneAffectation);
+
+    } else {
+        Historique historique = new Historique();
+
+        historique.setAction(
+            "Affectation à l'agent "
+            + agent.getUser().getNom()
+            + " "
+            + agent.getUser().getPrenom()
+        );
+
+        historique.setReclamation(reclamation);
+        historique.setUser(currentUser);
+        historique.setDateAction(LocalDateTime.now());
+        historiqueRepository.save(historique);
     }
 
     Status status = statusRepository
         .findByStatus("en cours")
         .orElseThrow(() ->
-            new RuntimeException("status pas trouvé")
+            new RuntimeException("Status non trouvé")
         );
 
     reclamation.setStatus(status);
@@ -89,9 +132,7 @@ public class AffectationService {
     reclamationRepository.save(reclamation);
 
     affectation.setAgent(agent);
-
     affectation.setReclamation(reclamation);
-
     affectation.setDateAffectation(
         LocalDateTime.now()
     );
@@ -100,19 +141,28 @@ public class AffectationService {
 
     Notification notification = new Notification();
 
-    notification.setUser(agent.getUser());
+    notification.setUser(
+        agent.getUser()
+    );
 
-    notification.setReclamation(reclamation);
-    notification.setDateEnvoi(LocalDateTime.now());
+    notification.setReclamation(
+        reclamation
+    );
+
+    notification.setDateEnvoi(
+        LocalDateTime.now()
+    );
+
     notification.setLue(false);
+
     notification.setMessage(
         "Une réclamation vous a été affectée : "
-        + reclamation.getTitre()+" veuillez consulter votre réclamations"
+        + reclamation.getTitre()
+        + ". Veuillez consulter vos réclamations."
     );
-    
-    notificationRepository.save(notification);
-    }
 
+    notificationRepository.save(notification);
+}
     public void updateAffectaion(Long id, Affectation Newaffectation){
 
             Affectation affectation = repo.findById(id)

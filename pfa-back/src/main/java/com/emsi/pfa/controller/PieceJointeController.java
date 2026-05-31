@@ -128,4 +128,9 @@ public class PieceJointeController {
         .body(resource);
 }
 
+    @DeleteMapping("delete-piece-jointe/{id}")
+    public String deletePieceJointe(@PathVariable Long id){
+        service.deletePieceJointe(id);
+        return "supprimé avec succés";
+    }
 }
