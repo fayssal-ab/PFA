@@ -41,6 +41,7 @@ public class AgentService {
         Agent agent = repo.findById(id)
                      .orElseThrow(() -> new RuntimeException("agent n existe pas " ));
         agent.setDisponible(disponible);
+        repo.save(agent);
     }
 
     

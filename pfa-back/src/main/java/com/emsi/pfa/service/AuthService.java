@@ -32,15 +32,22 @@ public class AuthService {
         if (!passwordEncoder.matches(password, user.getPassword())) {
             throw new RuntimeException("Mot de passe incorrect");
         }
+        String role = user.getRole().getName();
+
+        if (java.util.List.of("agent", "manager", "admin").contains(role)) {
+
          Historique historique = new Historique();
 
         historique.setAction(
-        user.getNom() + " " + user.getPrenom() + " s'est connecté au système"
-        );
+        user.getNom() + " " + user.getPrenom() +
+        " s'est connecté au système"
+         );
 
         historique.setUser(user);
         historique.setDateAction(LocalDateTime.now());
+
         historiqueRepository.save(historique);
+        }
         return jwtService.generateToken(user); 
     }
 }
