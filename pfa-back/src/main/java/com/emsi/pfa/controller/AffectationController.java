@@ -30,18 +30,28 @@ public class AffectationController {
     @GetMapping("/mes-affectations")
     public Page<Affectation> getMesAffectations(
         Authentication authentication,
+        @RequestParam(required = false) String titre,
+        @RequestParam(required = false) Long statusId,
+        @RequestParam(required = false) Long priorityId,
+        @RequestParam(required = false) Long categorieId,
         @RequestParam int page,
         @RequestParam int size) {
 
-    String email = authentication.getName();
+        String email = authentication.getName();
 
-    User user = userRepository.findByEmail(email)
-        .orElseThrow(() -> new RuntimeException("user introuvable"));
+        User user = userRepository.findByEmail(email)
+            .orElseThrow(() -> new RuntimeException("user introuvable"));
 
-    Long agentId = user.getAgent().getId();
+        Long agentId = user.getAgent().getId();
 
-    return service.getAffectationByAgent(agentId, page, size);
-
+        return service.getAffectationByAgent(
+            agentId,
+            titre,
+            statusId,
+            priorityId,
+            categorieId,
+            page,
+            size);
     }
     @DeleteMapping("/delete-affectation/{id}")
       public String DeleteAffectaion(@PathVariable Long id) {

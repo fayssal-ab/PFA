@@ -9,8 +9,17 @@ import {
 	Eye,
 	ChevronLeft,
 	ChevronRight,
+	Search,
+	Filter,
+	X,
 } from "lucide-react";
-import { Affectation, ApiResponse } from "../../../types";
+import {
+	Affectation,
+	ApiResponse,
+	Status,
+	Priority,
+	Categorie,
+} from "../../../types";
 import { useNavigate } from "react-router-dom";
 
 export default function MesAffectationsPage() {
@@ -19,18 +28,42 @@ export default function MesAffectationsPage() {
 	const [page, setPage] = useState<number>(0);
 	const [totalPages, setTotalPages] = useState<number>(0);
 	const navigate = useNavigate();
+	const [statuses, setStatuses] = useState<Status[]>([]);
+	const [priorities, setPriorities] = useState<Priority[]>([]);
+	const [categories, setCategories] = useState<Categorie[]>([]);
+
+	const [filterStatus, setFilterStatus] = useState("");
+	const [filterPriority, setFilterPriority] = useState("");
+	const [filterCategorie, setFilterCategorie] = useState("");
+	const [showFilters, setShowFilters] = useState(false);
+	const [search, setSearch] = useState("");
 
 	useEffect(() => {
 		load();
-	}, [page]);
+	}, [page, search, filterStatus, filterPriority, filterCategorie]);
+
+	useEffect(() => {
+		loadFilters();
+	}, []);
 
 	const load = async () => {
 		setLoading(true);
+
 		try {
 			const r = await api.get<ApiResponse<Affectation>>(
 				"/affectations/mes-affectations",
-				{ params: { page, size: 4 } },
+				{
+					params: {
+						page,
+						size: 4,
+						titre: search || undefined,
+						statusId: filterStatus || undefined,
+						priorityId: filterPriority || undefined,
+						categorieId: filterCategorie || undefined,
+					},
+				},
 			);
+
 			setAffectations(r.data?.content || []);
 			setTotalPages(r.data?.page.totalPages || 0);
 		} catch (e) {
@@ -39,6 +72,36 @@ export default function MesAffectationsPage() {
 			setLoading(false);
 		}
 	};
+	const loadFilters = async () => {
+		const [s, p, c] = await Promise.all([
+			api.get("/status/get-status"),
+			api.get("/priorities/get-priority"),
+			api.get("/categorie/get-categorie"),
+		]);
+
+		setStatuses(s.data || []);
+		setPriorities(p.data || []);
+		setCategories(c.data || []);
+	};
+	let filteredAffectations = [...affectations];
+
+	if (filterStatus) {
+		filteredAffectations = filteredAffectations.filter(
+			(a) => String(a.reclamation?.status?.id) === filterStatus,
+		);
+	}
+
+	if (filterPriority) {
+		filteredAffectations = filteredAffectations.filter(
+			(a) => String(a.reclamation?.priority?.id) === filterPriority,
+		);
+	}
+
+	if (filterCategorie) {
+		filteredAffectations = filteredAffectations.filter(
+			(a) => String(a.reclamation?.categorie?.id) === filterCategorie,
+		);
+	}
 
 	const statusColor = (s?: string): string => {
 		const n = s?.toLowerCase() || "";
@@ -80,7 +143,112 @@ export default function MesAffectationsPage() {
 					Les réclamations qui vous ont été assignées
 				</p>
 			</div>
+			<div className="flex flex-col gap-3 mb-6">
+				<div className="flex flex-col sm:flex-row gap-3">
+					<div className="relative w-full sm:w-64">
+						<Search
+							size={16}
+							className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+						/>
 
+						<input
+							type="text"
+							placeholder="Rechercher par titre..."
+							value={search}
+							onChange={(e) => {
+								setPage(0);
+								setSearch(e.target.value);
+							}}
+							className="w-full h-11 rounded-xl bg-[#1a1a2e] border border-white/10 pl-10 pr-4 text-white outline-none"
+						/>
+					</div>
+
+					<button
+						onClick={() => setShowFilters(!showFilters)}
+						className={`h-11 px-4 rounded-xl flex items-center gap-2 transition-all ${
+							showFilters
+								? "bg-violet-600 text-white"
+								: "bg-[#1a1a2e] border border-white/10 text-gray-300"
+						}`}
+					>
+						<Filter size={16} />
+						Filtres
+					</button>
+				</div>
+
+				{showFilters && (
+					<div className="bg-[#1a1a2e] border border-white/10 rounded-2xl p-4">
+						<div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+							<select
+								value={filterStatus}
+								onChange={(e) => {
+									setPage(0);
+									setFilterStatus(e.target.value);
+								}}
+								className="h-10 rounded-xl bg-[#111827] border border-white/10 px-3 text-white"
+							>
+								<option value="">Tous les statuts</option>
+
+								{statuses.map((s) => (
+									<option key={s.id} value={s.id}>
+										{s.status}
+									</option>
+								))}
+							</select>
+
+							<select
+								value={filterPriority}
+								onChange={(e) => {
+									setPage(0);
+									setFilterPriority(e.target.value);
+								}}
+								className="h-10 rounded-xl bg-[#111827] border border-white/10 px-3 text-white"
+							>
+								<option value="">Toutes les priorités</option>
+
+								{priorities.map((p) => (
+									<option key={p.id} value={p.id}>
+										{p.priority}
+									</option>
+								))}
+							</select>
+
+							<select
+								value={filterCategorie}
+								onChange={(e) => {
+									setPage(0);
+									setFilterCategorie(e.target.value);
+								}}
+								className="h-10 rounded-xl bg-[#111827] border border-white/10 px-3 text-white"
+							>
+								<option value="">Toutes les catégories</option>
+
+								{categories.map((c) => (
+									<option key={c.id} value={c.id}>
+										{c.categorie}
+									</option>
+								))}
+							</select>
+						</div>
+
+						<div className="mt-4 flex justify-end">
+							<button
+								onClick={() => {
+									setSearch("");
+									setFilterStatus("");
+									setFilterPriority("");
+									setFilterCategorie("");
+									setPage(0);
+								}}
+								className="flex items-center gap-2 text-red-400 hover:text-red-300"
+							>
+								<X size={14} />
+								Effacer les filtres
+							</button>
+						</div>
+					</div>
+				)}
+			</div>
 			{affectations.length === 0 ? (
 				<div className="bg-[#1a1a2e] rounded-2xl border border-white/5 flex flex-col items-center justify-center py-24">
 					<div className="w-16 h-16 rounded-2xl bg-violet-500/10 flex items-center justify-center mb-5">
@@ -93,7 +261,7 @@ export default function MesAffectationsPage() {
 				</div>
 			) : (
 				<div className="space-y-4">
-					{affectations.map((a) => (
+					{filteredAffectations.map((a) => (
 						<div
 							key={a.id}
 							className="bg-[#1a1a2e] rounded-2xl border border-white/5 p-5 hover:border-violet-500/30 hover:bg-white/[0.02] transition-all duration-200 group"

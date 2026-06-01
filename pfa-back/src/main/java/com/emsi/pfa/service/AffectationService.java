@@ -184,13 +184,97 @@ public void createAffectaion(Affectation affectation) {
              repo.delete(affectation);
 
         }
-        public Page<Affectation> getAffectationByAgent(Long agentId, int page, int size){
+        public Page<Affectation> getAffectationByAgent(
+        Long agentId,
+        String titre,
+        Long statusId,
+        Long priorityId,
+        Long categorieId,
+        int page,
+        int size) {
 
-                  Pageable pageable = PageRequest.of(
-                    page,
-                    size,
-                    Sort.by("dateAffectation").descending() );
-                    return repo.findByAgentId(agentId, pageable);
+        Pageable pageable = PageRequest.of(
+            page,
+            size,
+            Sort.by("dateAffectation").descending());
+
+        if (titre != null && !titre.trim().isEmpty()) {
+
+        if (statusId != null && priorityId != null && categorieId != null) {
+            return repo.findByAgentIdAndReclamation_TitreContainingIgnoreCaseAndReclamation_Status_IdAndReclamation_Priority_IdAndReclamation_Categorie_Id(
+                    agentId, titre, statusId, priorityId, categorieId, pageable);
         }
+
+        if (statusId != null && priorityId != null) {
+            return repo.findByAgentIdAndReclamation_TitreContainingIgnoreCaseAndReclamation_Status_IdAndReclamation_Priority_Id(
+                    agentId, titre, statusId, priorityId, pageable);
+        }
+
+        if (statusId != null && categorieId != null) {
+            return repo.findByAgentIdAndReclamation_TitreContainingIgnoreCaseAndReclamation_Status_IdAndReclamation_Categorie_Id(
+                    agentId, titre, statusId, categorieId, pageable);
+        }
+
+        if (priorityId != null && categorieId != null) {
+            return repo.findByAgentIdAndReclamation_TitreContainingIgnoreCaseAndReclamation_Priority_IdAndReclamation_Categorie_Id(
+                    agentId, titre, priorityId, categorieId, pageable);
+        }
+
+        if (statusId != null) {
+            return repo.findByAgentIdAndReclamation_TitreContainingIgnoreCaseAndReclamation_Status_Id(
+                    agentId, titre, statusId, pageable);
+        }
+
+        if (priorityId != null) {
+            return repo.findByAgentIdAndReclamation_TitreContainingIgnoreCaseAndReclamation_Priority_Id(
+                    agentId, titre, priorityId, pageable);
+        }
+
+        if (categorieId != null) {
+            return repo.findByAgentIdAndReclamation_TitreContainingIgnoreCaseAndReclamation_Categorie_Id(
+                    agentId, titre, categorieId, pageable);
+        }
+
+        return repo.findByAgentIdAndReclamation_TitreContainingIgnoreCase(
+                agentId, titre, pageable);
+    }
+
+    if (statusId != null && priorityId != null && categorieId != null) {
+        return repo.findByAgentIdAndReclamation_Status_IdAndReclamation_Priority_IdAndReclamation_Categorie_Id(
+                agentId, statusId, priorityId, categorieId, pageable);
+    }
+
+    if (statusId != null && priorityId != null) {
+        return repo.findByAgentIdAndReclamation_Status_IdAndReclamation_Priority_Id(
+                agentId, statusId, priorityId, pageable);
+    }
+
+    if (statusId != null && categorieId != null) {
+        return repo.findByAgentIdAndReclamation_Status_IdAndReclamation_Categorie_Id(
+                agentId, statusId, categorieId, pageable);
+    }
+
+    if (priorityId != null && categorieId != null) {
+        return repo.findByAgentIdAndReclamation_Priority_IdAndReclamation_Categorie_Id(
+                agentId, priorityId, categorieId, pageable);
+    }
+
+    if (statusId != null) {
+        return repo.findByAgentIdAndReclamation_Status_Id(
+                agentId, statusId, pageable);
+    }
+
+    if (priorityId != null) {
+        return repo.findByAgentIdAndReclamation_Priority_Id(
+                agentId, priorityId, pageable);
+    }
+
+    if (categorieId != null) {
+        return repo.findByAgentIdAndReclamation_Categorie_Id(
+                agentId, categorieId, pageable);
+    }
+
+    return repo.findByAgentId(agentId, pageable);
+}
 
 }
