@@ -123,6 +123,12 @@ export default function MesAffectationsPage() {
 		return "bg-gray-500/15 text-gray-300 border border-gray-500/25";
 	};
 
+	const activeFiltersCount = [
+		filterStatus,
+		filterPriority,
+		filterCategorie,
+	].filter(Boolean).length;
+
 	if (loading && affectations.length === 0)
 		return (
 			<DashboardLayout>
@@ -173,7 +179,27 @@ export default function MesAffectationsPage() {
 					>
 						<Filter size={16} />
 						Filtres
+						{activeFiltersCount > 0 && (
+							<span className="bg-indigo-500 text-white text-[10px] px-1.5 py-0.5 rounded-full">
+								{activeFiltersCount}
+							</span>
+						)}
 					</button>
+					{activeFiltersCount > 0 && (
+							<button
+								onClick={() => {
+									setSearch("");
+									setFilterStatus("");
+									setFilterPriority("");
+									setFilterCategorie("");
+									setPage(0);
+								}}
+								className="h-10 px-3 rounded-xl text-[12px] text-gray-400 hover:text-red-500 flex items-center gap-1 transition-colors"
+							>
+								<X size={14} />
+								Effacer
+							</button>
+					)}
 				</div>
 
 				{showFilters && (
@@ -229,22 +255,6 @@ export default function MesAffectationsPage() {
 									</option>
 								))}
 							</select>
-						</div>
-
-						<div className="mt-4 flex justify-end">
-							<button
-								onClick={() => {
-									setSearch("");
-									setFilterStatus("");
-									setFilterPriority("");
-									setFilterCategorie("");
-									setPage(0);
-								}}
-								className="flex items-center gap-2 text-red-400 hover:text-red-300"
-							>
-								<X size={14} />
-								Effacer les filtres
-							</button>
 						</div>
 					</div>
 				)}
