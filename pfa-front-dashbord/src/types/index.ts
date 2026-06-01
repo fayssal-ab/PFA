@@ -167,3 +167,12 @@ export interface PieceJointe {
 
 	user?: User;
 }
+export interface Historique {
+	id: number;
+	ancienStatus?: string;
+	nouveauStatus?: string;
+	reclamation?: Reclamation;
+	user: User;
+	action: string;
+	dateAction: Date;
+}

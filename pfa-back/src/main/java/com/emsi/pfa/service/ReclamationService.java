@@ -54,24 +54,30 @@ public class ReclamationService {
         private HistoriqueRepository historiqueRepository;
 
     public Reclamation addReclamation(Reclamation reclamation) {
-        try {
             Status status = statusRepository.findByStatus("en attente")
                 .orElseThrow(() -> new RuntimeException("status introuvable"));
           
             reclamation.setStatus(status);
-           Reclamation savedReclamation = repo.save(reclamation);
+            Reclamation savedReclamation = repo.save(reclamation);
             List<User> managers = userRepository.findByRole_Name("manager");
+            List<User> admins = userRepository.findByRole_Name("admin");
             for(User manager : managers){
                 Notification notification = new Notification();
                 notification.setUser(manager);
+                notification.setReclamation(savedReclamation);
+                notification.setMessage("Nouvelle réclamation est arrivé : " + reclamation.getTitre());
+                notificationRepository.save(notification);
+            }
+            for(User admin : admins){
+                Notification notification = new Notification();
+                notification.setUser(admin);
                 notification.setReclamation(reclamation);
-                notification.setMessage("Nouvelle réclamation créée : " + reclamation.getTitre());
+                notification.setMessage("Nouvelle réclamation est arrivé : #"+reclamation.getId()+" "+ reclamation.getTitre());
                 notificationRepository.save(notification);
             }
             return savedReclamation;
-        } catch (Exception e) {
-            throw new RuntimeException("Erreur lors de l'ajout de la réclamation : " + e.getMessage());
-        }
+        
+        
     }
     
 public Reclamation getReclamation(Long id, Authentication authentication) {

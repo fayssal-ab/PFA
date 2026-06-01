@@ -11,8 +11,10 @@ import {
 	Search,
 } from "lucide-react";
 
+import{Historique} from "../../../types"
+
 export default function HistoriquePage() {
-	const [historiques, setHistoriques] = useState<any[]>([]);
+	const [historiques, setHistoriques] = useState<Historique[]>([]);
 	const [stats, setStats] = useState<any>(null);
 
 	const [loading, setLoading] = useState(true);
@@ -111,8 +113,6 @@ export default function HistoriquePage() {
 					Suivi des actions effectuées dans le système
 				</p>
 			</div>
-
-			{/* FILTRES */}
 
 			<div className="bg-[#111827]/80 backdrop-blur-xl rounded-3xl border border-white/10 p-6 mb-8">
 				<div className="flex items-center gap-2 mb-5">

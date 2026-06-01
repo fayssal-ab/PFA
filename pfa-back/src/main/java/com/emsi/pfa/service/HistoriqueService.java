@@ -75,7 +75,7 @@ public class HistoriqueService {
         dto.setReclamationsImpactees(
                 repo.findAll()
                         .stream()
-                        .map(h -> h.getReclamation().getId())
+                        .filter(h -> h.getReclamation() != null)
                         .distinct()
                         .count());
 

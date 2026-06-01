@@ -84,6 +84,17 @@ public class PieceJointeService {
     public void deletePieceJointe(Long id){
         PieceJointe pieceJointe = repo.findById(id)
                                  .orElseThrow(() -> new RuntimeException("piece jointe non trouvée"));
+                    User currentUser = currentUserService.getCurrentUser();
+            Historique historique = new Historique();
+
+            historique.setAction(
+            currentUser.getNom()+" "+currentUser.getPrenom()+" à supprimer une piece jointe concerner reclamation #" 
+            +pieceJointe.getReclamation().getId()
+            );
+
+            historique.setUser(currentUser);
+            historique.setDateAction(LocalDateTime.now());
+            historiqueRepository.save(historique);
         repo.delete(pieceJointe);
     }
     public Page<PieceJointe> getPiecesByReclamation(

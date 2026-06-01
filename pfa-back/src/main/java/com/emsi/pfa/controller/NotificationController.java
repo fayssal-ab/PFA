@@ -40,4 +40,8 @@ public class NotificationController {
             service.markAsRead(id);
             return "Notification marquée comme lue avec succès";
         }
+        @GetMapping("/count/{userId}")
+        public Long getNotificationCount(@PathVariable Long userId) {
+        return service.getUnreadNotificationsCount(userId);
+}
 }

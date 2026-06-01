@@ -5,6 +5,7 @@ import java.util.List;
 import com.emsi.pfa.model.Notification;
 
 public interface NotificationRepository extends JpaRepository<Notification, Long> {
-        List<Notification> findByUserId(Long UserId);
+        List<Notification> findByUserIdOrderByDateEnvoiDesc(Long UserId);
+        long countByUserIdAndLueFalse(Long userId);
 
 }
