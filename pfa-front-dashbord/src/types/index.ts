@@ -49,6 +49,7 @@ export interface Reclamation {
 	priority?: Priority;
 	categorie?: Categorie;
 	client?: Client;
+	affectations: Affectation;
 }
 
 export interface Client {
@@ -83,6 +84,7 @@ export interface Affectation {
 	commentaire?: string;
 	dateAffectation: string;
 	reclamation?: Reclamation;
+	agent?: Agent;
 }
 
 export interface LoginCredentials {
