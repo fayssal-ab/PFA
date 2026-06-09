@@ -7,8 +7,10 @@ import java.util.List;
 
 import com.emsi.pfa.repository.HistoriqueRepository;
 import com.emsi.pfa.repository.NotificationRepository;
+import com.emsi.pfa.repository.ReclamationRepository;
 import com.emsi.pfa.model.Historique;
 import com.emsi.pfa.model.Notification;
+import com.emsi.pfa.model.Reclamation;
 import com.emsi.pfa.model.User;
 @Service
 public class NotificationService {
@@ -18,9 +20,18 @@ public class NotificationService {
         private CurrentUserService currentUserService;
     @Autowired
         private HistoriqueRepository historiqueRepository;
-        
+    @Autowired
+    private ReclamationRepository reclamationRepository;
+
         public void addNotification(Notification notification) {
-            repo.save(notification);
+            Reclamation reclamation = reclamationRepository
+            .findById(notification.getReclamation().getId())
+            .orElseThrow(() -> new RuntimeException("Réclamation introuvable"));
+            Notification not = new Notification();
+            not.setMessage(notification.getMessage());
+            not.setUser(reclamation.getClient().getUser());
+            not.setReclamation(reclamation);
+            repo.save(not);
         }
         public void updateNotification(Long id, Notification notification) {
             Notification existingNotification = repo.findById(id).orElse(null);

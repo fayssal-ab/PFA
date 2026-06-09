@@ -10,6 +10,7 @@ import {
 	UserCheck,
 	Send,
 	Eye,
+	Bell,
 } from "lucide-react";
 import {
 	Reclamation,
@@ -36,6 +37,11 @@ export default function ReclamationsPage() {
 	const [selectedCategorie, setSelectedCategorie] = useState<string | null>(
 		null,
 	);
+	const [showNotificationModal, setShowNotificationModal] = useState(false);
+	const [notificationMessage, setNotificationMessage] = useState("");
+	const [selectedReclamationNotification, setSelectedReclamationNotification] =
+		useState<Reclamation | null>(null);
+	const [sendingNotification, setSendingNotification] = useState(false);
 	const [showAffectModal, setShowAffectModal] = useState<boolean>(false);
 	const [selectedReclamation, setSelectedReclamation] =
 		useState<Reclamation | null>(null);
@@ -46,7 +52,7 @@ export default function ReclamationsPage() {
 
 	const [affectLoading, setAffectLoading] = useState<boolean>(false);
 
-  const navigate =useNavigate();
+	const navigate = useNavigate();
 
 	useEffect(() => {
 		load();
@@ -76,6 +82,32 @@ export default function ReclamationsPage() {
 		};
 	}, []);
 
+	const openNotificationModal = (reclamation: Reclamation) => {
+		setSelectedReclamationNotification(reclamation);
+		setNotificationMessage("");
+		setShowNotificationModal(true);
+	};
+	const handleNotification = async () => {
+		if (!selectedReclamationNotification || !notificationMessage.trim()) return;
+
+		setSendingNotification(true);
+
+		try {
+			await api.post("/notifications/add-notification", {
+				message: notificationMessage,
+				reclamation: {
+					id: selectedReclamationNotification.id,
+				},
+			});
+
+			setShowNotificationModal(false);
+			setNotificationMessage("");
+		} catch (e) {
+			console.error(e);
+		} finally {
+			setSendingNotification(false);
+		}
+	};
 	const load = async () => {
 		setLoading(true);
 		try {
@@ -517,6 +549,13 @@ export default function ReclamationsPage() {
 											>
 												<Eye size={15} />
 											</button>
+											<button
+												type="button"
+												onClick={() => openNotificationModal(r)}
+												className="w-8 h-8 rounded-lg flex items-center justify-center bg-amber-50 text-amber-600 hover:bg-amber-100"
+											>
+												<Bell size={15} />
+											</button>
 										</td>
 									</tr>
 								))
@@ -608,6 +647,62 @@ export default function ReclamationsPage() {
 										Affecter
 									</>
 								)}
+							</button>
+						</div>
+					</div>
+				</div>
+			)}
+			{showNotificationModal && (
+				<div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+					<div className="w-full max-w-md bg-white rounded-2xl shadow-2xl">
+						<div className="px-6 py-4 border-b border-gray-100 flex justify-between">
+							<div>
+								<h2 className="text-lg font-bold text-[#1a1a2e]">
+									Notifier le client
+								</h2>
+
+								<p className="text-sm text-gray-500">
+									{selectedReclamationNotification?.titre}
+								</p>
+							</div>
+
+							<button
+								type="button"
+								onClick={() => setShowNotificationModal(false)}
+							>
+								<X size={18} />
+							</button>
+						</div>
+
+						<div className="p-6">
+							<label className="block text-sm font-medium mb-2">Message</label>
+
+							<textarea
+								value={notificationMessage}
+								onChange={(e) => setNotificationMessage(e.target.value)}
+								rows={5}
+								placeholder="Écrire un message pour le client..."
+								className="w-full border border-gray-200 rounded-xl p-4 resize-none outline-none focus:border-indigo-400"
+							/>
+						</div>
+
+						<div className="px-6 py-4 border-t border-gray-100 flex justify-end gap-3">
+							<button
+								type="button"
+								onClick={() => setShowNotificationModal(false)}
+								className="h-10 px-4 rounded-xl border border-gray-200"
+							>
+								Annuler
+							</button>
+
+							<button
+								type="button"
+								onClick={handleNotification}
+								disabled={sendingNotification}
+								className="h-10 px-5 rounded-xl bg-amber-500 text-white hover:bg-amber-600 flex items-center gap-2"
+							>
+								<Send size={15} />
+								Envoyer
 							</button>
 						</div>
 					</div>
