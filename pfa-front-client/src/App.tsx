@@ -7,6 +7,7 @@ import MesReclamationsPage from "./features/reclamations/pages/MesReclamationsPa
 import NotificationsPage from "./features/notifications/pages/NotificationsPage";
 import ProfilePage from "./features/profile/pages/ProfilePage";
 import ProtectedRoute from "./middleware/ProtectedRoute";
+import RegisterPage from "./features/auth/pages/RegisterPage";
 
 export default function App() {
   return (
@@ -55,6 +56,7 @@ export default function App() {
             </ProtectedRoute>
           }
         />
+        <Route path="/register" element={<RegisterPage />} />
       </Routes>
     </BrowserRouter>
   );
