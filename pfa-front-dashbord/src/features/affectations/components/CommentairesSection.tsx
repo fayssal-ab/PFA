@@ -1,5 +1,7 @@
-import { MessageSquare, Send } from "lucide-react";
+import { useState } from "react";
+import { MessageSquare, Send, ShieldCheck } from "lucide-react";
 import { Commentaire, AuthUser } from "../../../types";
+import api from "../../../lib/axiosInstance";
 
 type Props = {
 	commentaires: Commentaire[];
@@ -8,6 +10,7 @@ type Props = {
 	sendComment: () => void;
 	sending: boolean;
 	user: AuthUser | null;
+	onRefresh?: () => void;
 };
 
 export default function CommentairesSection({
@@ -17,7 +20,11 @@ export default function CommentairesSection({
 	sendComment,
 	sending,
 	user,
+	onRefresh,
 }: Props) {
+	const [approvingId, setApprovingId] = useState<number | null>(null);
+	const isAdmin = user?.role === "admin";
+
 	const handleKey = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
 		if (e.key === "Enter" && !e.shiftKey) {
 			e.preventDefault();
@@ -25,76 +32,108 @@ export default function CommentairesSection({
 		}
 	};
 
+	const handleApprouver = async (id: number) => {
+		setApprovingId(id);
+		try {
+			await api.put(`/commentaires/approuver/${id}`);
+			onRefresh?.();
+		} catch (e) {
+			console.error(e);
+		} finally {
+			setApprovingId(null);
+		}
+	};
+
 	return (
-		<div className="bg-[#1a1a2e] rounded-2xl border border-white/5 overflow-hidden">
-			<div className="px-5 py-4 border-b border-white/5 flex items-center gap-2.5">
-				<div className="w-8 h-8 rounded-xl bg-indigo-500/15 flex items-center justify-center">
-					<MessageSquare size={15} className="text-indigo-400" />
+		<div className="bg-white rounded-lg border border-slate-200 overflow-hidden">
+			<div className="px-4 py-3 border-b border-slate-200 flex items-center gap-2.5">
+				<div className="w-8 h-8 rounded-md bg-teal-50 flex items-center justify-center">
+					<MessageSquare size={15} className="text-teal-600" />
 				</div>
 				<div>
-					<h2 className="text-sm font-bold text-white">Commentaires</h2>
-					<p className="text-[11px] text-gray-600">
+					<h2 className="text-sm font-bold text-slate-900">Commentaires</h2>
+					<p className="text-[11px] text-slate-500">
 						{commentaires.length} message{commentaires.length !== 1 ? "s" : ""}
 					</p>
 				</div>
 			</div>
 
-			<div className="p-5 space-y-4 max-h-[420px] overflow-y-auto scroll-smooth">
+			<div className="p-4 space-y-4 max-h-[420px] overflow-y-auto scroll-smooth">
 				{commentaires.length === 0 ? (
 					<div className="flex flex-col items-center justify-center py-12 text-center">
-						<div className="w-12 h-12 rounded-2xl bg-white/5 flex items-center justify-center mb-3">
-							<MessageSquare size={20} className="text-gray-600" />
+						<div className="w-12 h-12 rounded-lg bg-slate-50 flex items-center justify-center mb-3">
+							<MessageSquare size={20} className="text-slate-400" />
 						</div>
-						<p className="text-sm text-gray-600">
+						<p className="text-sm text-slate-500">
 							Aucun commentaire pour le moment
 						</p>
-						<p className="text-xs text-gray-700 mt-1">
+						<p className="text-xs text-slate-400 mt-1">
 							Soyez le premier à commenter
 						</p>
 					</div>
 				) : (
 					commentaires.map((c) => {
 						const isMine = c.user?.id === user?.userId;
+						const isPending = c.approuveParAdmin === false;
 						return (
-							<div
-								key={c.id}
-								className={`flex ${isMine ? "justify-end" : "justify-start"}`}
-							>
-								<div
-									className={`max-w-[72%] ${isMine ? "items-end" : "items-start"} flex flex-col gap-1`}
-								>
-									<span className="text-[10px] font-semibold text-gray-600 px-1">
-										{isMine
-											? "Vous"
-											: `${c.user?.nom || ""} ${c.user?.prenom || ""}`.trim()}
-									</span>
-									<div
-										className={`rounded-2xl px-4 py-3 text-sm leading-relaxed ${
-											isMine
-												? "bg-gradient-to-br from-violet-600 to-purple-600 text-white rounded-br-sm"
-												: "bg-white/[0.05] border border-white/10 text-gray-200 rounded-bl-sm"
-										}`}
-									>
-										{c.contenu}
+							<div key={c.id}>
+								<div className={`flex ${isMine ? "justify-end" : "justify-start"}`}>
+									<div className={`max-w-[72%] ${isMine ? "items-end" : "items-start"} flex flex-col gap-1`}>
+										<span className="text-[10px] font-semibold text-slate-500 px-1">
+											{isMine
+												? "Vous"
+												: `${c.user?.nom || ""} ${c.user?.prenom || ""}`.trim()}
+										</span>
+										<div
+											className={`rounded-lg px-4 py-3 text-sm leading-relaxed ${
+												isMine
+													? "bg-teal-600 text-white rounded-br-sm"
+													: "bg-slate-50 border border-slate-200 text-slate-700 rounded-bl-sm"
+											} ${isPending ? "opacity-70" : ""}`}
+										>
+											{c.contenu}
+										</div>
+										<div className="flex items-center gap-2 px-1">
+											<span className="text-[10px] text-slate-400">
+												{c.dateCommentaire
+													? new Date(c.dateCommentaire).toLocaleString("fr-FR", {
+															hour: "2-digit",
+															minute: "2-digit",
+															day: "numeric",
+															month: "short",
+														})
+													: ""}
+											</span>
+											{isPending && (
+												<span className="text-[9px] text-amber-600 bg-amber-50 px-1.5 py-0.5 rounded-md font-medium">
+													En attente d'approbation
+												</span>
+											)}
+										</div>
 									</div>
-									<span className="text-[10px] text-gray-700 px-1">
-										{c.dateCommentaire
-											? new Date(c.dateCommentaire).toLocaleString("fr-FR", {
-													hour: "2-digit",
-													minute: "2-digit",
-													day: "numeric",
-													month: "short",
-												})
-											: ""}
-									</span>
 								</div>
+								{isPending && isAdmin && (
+									<div className="flex justify-start mt-1.5 ml-1">
+										<button
+											onClick={() => handleApprouver(c.id)}
+											disabled={approvingId === c.id}
+											className="h-6 px-2.5 rounded-md flex items-center gap-1 bg-emerald-50 text-emerald-600 hover:bg-emerald-100 transition-all text-[11px] font-medium disabled:opacity-50"
+										>
+											{approvingId === c.id ? (
+												<div className="w-3 h-3 border-2 border-emerald-200 border-t-emerald-600 rounded-full animate-spin" />
+											) : (
+												<><ShieldCheck size={12} /> Approuver</>
+											)}
+										</button>
+									</div>
+								)}
 							</div>
 						);
 					})
 				)}
 			</div>
 
-			<div className="border-t border-white/5 p-4 bg-black/20">
+			<div className="border-t border-slate-200 p-4 bg-slate-50">
 				<div className="flex items-end gap-3">
 					<textarea
 						value={message}
@@ -102,12 +141,12 @@ export default function CommentairesSection({
 						onKeyDown={handleKey}
 						placeholder="Écrire un commentaire... (Entrée pour envoyer)"
 						rows={2}
-						className="flex-1 bg-white/[0.04] border border-white/10 text-white rounded-xl px-4 py-3 text-sm outline-none resize-none focus:border-violet-500/50 focus:ring-2 focus:ring-violet-500/15 placeholder-gray-600 transition-all"
+						className="flex-1 bg-white border border-slate-200 text-slate-900 rounded-md px-4 py-3 text-sm outline-none resize-none focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20 placeholder-slate-400 transition-all"
 					/>
 					<button
 						onClick={sendComment}
 						disabled={sending || !message.trim()}
-						className="w-11 h-11 rounded-xl bg-gradient-to-br from-violet-600 to-purple-600 text-white flex items-center justify-center hover:opacity-90 hover:scale-[1.05] disabled:opacity-40 disabled:cursor-not-allowed disabled:scale-100 transition-all shadow-lg shadow-violet-900/30 shrink-0"
+						className="w-11 h-11 rounded-md bg-teal-600 text-white flex items-center justify-center hover:bg-teal-700 disabled:opacity-40 disabled:cursor-not-allowed transition-all shrink-0"
 					>
 						{sending ? (
 							<div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />

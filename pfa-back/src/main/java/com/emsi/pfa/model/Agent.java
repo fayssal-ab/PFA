@@ -11,6 +11,7 @@ public class Agent {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+    private String matricule;
     private boolean disponible;
     @OneToOne
     @JoinColumn(name = "user_id", unique = true)
@@ -37,7 +38,12 @@ public class Agent {
     public void setUser(User user) {
         this.user = user;
     }
-    
 
-    
+    public String getMatricule() {
+        return matricule;
+    }
+
+    public void setMatricule(String matricule) {
+        this.matricule = matricule;
+    }
 }

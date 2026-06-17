@@ -1,217 +1,188 @@
 import { NavLink, useLocation } from "react-router-dom";
 import { useAuth } from "../../features/auth/hooks/useAuth";
 import {
-	LayoutDashboard,
-	Users,
-	AlertTriangle,
-	Settings,
-	UserCog,
-	Briefcase,
-	Bell,
-	ClipboardList,
-	LogOut,
-	ChevronLeft,
-	ChevronRight,
-	Sparkles,
-	TrendingUp,
-	Activity,
-	Shield,
-	History,
+  LayoutDashboard,
+  Users,
+  AlertTriangle,
+  Settings,
+  UserCog,
+  Briefcase,
+  Bell,
+  ClipboardList,
+  LogOut,
+  ChevronLeft,
+  History,
+  Menu,
+  X,
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import api from "../../lib/axiosInstance";
-import { Categorie } from "../../types";
-import { Interface } from "readline";
-import { Props } from "recharts/types/shape/Dot";
 
 const nav = [
-	{
-		to: "/dashboard",
-		icon: LayoutDashboard,
-		roles: ["admin", "manager", "agent"],
-		label: "Tableau de bord",
-	},
-	{ to: "/users", icon: Users, roles: ["admin"], label: "Utilisateurs" },
-	{
-		to: "/agents",
-		icon: UserCog,
-		roles: ["admin", "manager"],
-		label: "Agents",
-	},
-	{ to: "/managers", icon: Briefcase, roles: ["admin"], label: "Managers" },
-	{
-		to: "/reclamations",
-		icon: AlertTriangle,
-		roles: ["admin", "manager"],
-		label: "Réclamations",
-	},
-	{
-		to: "/mes-affectations",
-		icon: ClipboardList,
-		roles: ["agent"],
-		label: "Mes affectations",
-	},
-	{
-		to: "/notifications",
-		icon: Bell,
-		roles: ["admin", "manager", "agent"],
-		label: "Notifications",
-	},
-	{ to: "/settings", icon: Settings, roles: ["admin"], label: "Paramètres" },
-	{ to: "/historique", icon: History, roles: ["admin"], label: "historique" },
+  { to: "/dashboard", icon: LayoutDashboard, roles: ["admin", "manager", "agent"], label: "Tableau de bord" },
+  { to: "/users", icon: Users, roles: ["admin"], label: "Utilisateurs" },
+  { to: "/agents", icon: UserCog, roles: ["admin", "manager"], label: "Agents" },
+  { to: "/managers", icon: Briefcase, roles: ["admin"], label: "Managers" },
+  { to: "/reclamations", icon: AlertTriangle, roles: ["admin", "manager"], label: "Reclamations" },
+  { to: "/mes-affectations", icon: ClipboardList, roles: ["agent"], label: "Mes affectations" },
+  { to: "/notifications", icon: Bell, roles: ["admin", "manager", "agent"], label: "Notifications" },
+  { to: "/historique", icon: History, roles: ["admin"], label: "Historique" },
+  { to: "/settings", icon: Settings, roles: ["admin"], label: "Parametres" },
 ];
 
 export default function Sidebar() {
-	const { user, setUser } = useAuth();
-	const location = useLocation();
-	const [collapsed, setCollapsed] = useState(false);
+  const { user, setUser } = useAuth();
+  const location = useLocation();
+  const [collapsed, setCollapsed] = useState(false);
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const [notificationCount, setNotificationCount] = useState(0);
 
-	const items = nav.filter((n) => n.roles.includes(user?.role || ""));
-	const [categories, setCategories] = useState<Categorie[]>([]);
-	const [notificationCount, setNotificationCount] = useState(0);
+  const items = nav.filter((n) => n.roles.includes(user?.role || ""));
 
-	useEffect(() => {
-		loadCategories();
-		loadNotificationCount();
-		const refreshCount = () => loadNotificationCount();
+  useEffect(() => {
+    loadNotificationCount();
+    const interval = setInterval(loadNotificationCount, 30000);
+    return () => clearInterval(interval);
+  }, []);
 
-		window.addEventListener("notification-updated", refreshCount);
+  useEffect(() => {
+    setMobileOpen(false);
+  }, [location.pathname]);
 
-		return () =>
-			window.removeEventListener("notification-updated", refreshCount);
-	}, []);
+  const loadNotificationCount = async () => {
+    try {
+      const res = await api.get(`/notifications/count/${user?.userId}`);
+      setNotificationCount(res.data);
+    } catch (error) {
+      console.error(error);
+    }
+  };
 
-	const loadNotificationCount = async () => {
-		try {
-			const res = await api.get(`/notifications/count/${user?.userId}`);
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("refreshToken");
+    setUser(null);
+    window.location.href = "/";
+  };
 
-			setNotificationCount(res.data);
-		} catch (error) {
-			console.error(error);
-		}
-	};
+  const roleBadge = (role?: string) => {
+    if (role === "admin") return "Admin";
+    if (role === "manager") return "Manager";
+    if (role === "agent") return "Agent";
+    return "";
+  };
 
-	const loadCategories = async () => {
-		try {
-			const res = await api.get("/categorie/get-categorie");
-			setCategories(res.data || []);
-		} catch (error) {
-			console.error(error);
-		}
-	};
-	const handleLogout = () => {
-		localStorage.removeItem("token");
-		setUser(null);
-		window.location.href = "/";
-	};
+  const SidebarContent = () => (
+    <div className="flex flex-col h-full">
+      <div className={`h-12 flex items-center ${collapsed ? "justify-center px-2" : "px-4"} border-b border-white/[0.06]`}>
+        {collapsed ? (
+          <img src="/logo.png" alt="ReclamaCRM" className="w-8 h-8 object-cover object-left rounded" />
+        ) : (
+          <img src="/logo.png" alt="ReclamaCRM" className="h-9 object-contain" style={{ filter: "brightness(0) invert(1)" }} />
+        )}
+      </div>
 
-	return (
-		<aside
-			className={`relative bg-gradient-to-b from-slate-900 via-slate-900 to-slate-800 dark:from-slate-950 dark:via-slate-950 dark:to-slate-900 transition-all duration-300 ${collapsed ? "w-20" : "w-72"} flex-shrink-0`}
-		>
-			{/* Logo section */}
-			<div
-				className={`h-16 flex items-center ${collapsed ? "justify-center" : "px-6"} border-b border-white/10`}
-			>
-				<div className="flex items-center gap-3">
-					<div className="w-8 h-8 rounded-xl bg-gradient-to-r from-indigo-500 to-pink-500 flex items-center justify-center shadow-lg shadow-indigo-500/25">
-						<Sparkles size={18} className="text-white" />
-					</div>
-					{!collapsed && (
-						<div>
-							<span className="text-white font-bold text-lg tracking-tight">
-								Reclama
-							</span>
-							<span className="text-indigo-400 font-bold text-lg">CRM</span>
-						</div>
-					)}
-				</div>
-			</div>
+      <nav className="flex-1 py-2 px-2 space-y-0.5 overflow-y-auto">
+        {items.map((item) => {
+          const isActive = location.pathname === item.to ||
+            (item.to !== "/dashboard" && location.pathname.startsWith(item.to));
+          return (
+            <NavLink
+              key={item.to}
+              to={item.to}
+              className={`flex items-center gap-2 px-2.5 py-[7px] rounded-md transition-colors text-[13px] font-medium relative group ${
+                isActive
+                  ? "bg-white/[0.08] text-white"
+                  : "text-slate-400 hover:bg-white/[0.04] hover:text-slate-200"
+              }`}
+              title={collapsed ? item.label : undefined}
+            >
+              {isActive && (
+                <div className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-4 bg-teal-500 rounded-r-full" />
+              )}
+              <item.icon size={16} strokeWidth={isActive ? 2 : 1.5} />
+              {!collapsed && <span>{item.label}</span>}
+              {item.to === "/notifications" && notificationCount > 0 && !collapsed && (
+                <span className="ml-auto text-[10px] bg-red-500 text-white px-1.5 py-px rounded-full min-w-[18px] text-center font-semibold">
+                  {notificationCount > 9 ? "9+" : notificationCount}
+                </span>
+              )}
+              {item.to === "/notifications" && notificationCount > 0 && collapsed && (
+                <span className="absolute top-0.5 right-0.5 w-2 h-2 bg-red-500 rounded-full" />
+              )}
+            </NavLink>
+          );
+        })}
+      </nav>
 
-			{/* Navigation */}
-			<nav className="flex-1 py-6 px-3 space-y-1">
-				{items.map((item) => {
-					const isActive = location.pathname === item.to;
-					return (
-						<NavLink
-							key={item.to}
-							to={item.to}
-							className={`flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all group ${
-								isActive
-									? "bg-white/10 text-white shadow-lg"
-									: "text-slate-400 hover:bg-white/5 hover:text-white"
-							}`}
-							title={collapsed ? item.label : ""}
-						>
-							<item.icon
-								size={20}
-								className={isActive ? "text-indigo-400" : ""}
-							/>
-							{!collapsed && (
-								<span className="text-sm font-medium">{item.label}</span>
-							)}
-							{collapsed && (
-								<div className="absolute left-full ml-2 px-2 py-1 bg-slate-800 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-50">
-									{item.label}
-								</div>
-							)}
-							{item.to === "/notifications" && notificationCount > 0 && (
-								<span className="ml-auto bg-red-500 text-white text-xs px-2 py-1 rounded-full min-w-[20px] text-center">
-									{notificationCount}
-								</span>
-							)}
-						</NavLink>
-					);
-				})}
+      <div className="p-2 border-t border-white/[0.06]">
+        {!collapsed && (
+          <div className="px-2.5 py-2 mb-1">
+            <div className="flex items-center gap-2">
+              <p className="text-xs font-medium text-white truncate">
+                {user?.nom} {user?.prenom}
+              </p>
+              <span className="text-[9px] bg-teal-600/20 text-teal-400 px-1.5 py-px rounded font-medium">
+                {roleBadge(user?.role)}
+              </span>
+            </div>
+            <p className="text-[11px] text-slate-500 truncate">{user?.email}</p>
+          </div>
+        )}
+        <button
+          onClick={handleLogout}
+          className={`w-full flex items-center gap-2 px-2.5 py-[7px] rounded-md text-slate-400 hover:bg-red-500/10 hover:text-red-400 transition-colors text-[13px] font-medium ${
+            collapsed ? "justify-center" : ""
+          }`}
+          title={collapsed ? "Deconnexion" : undefined}
+        >
+          <LogOut size={16} strokeWidth={1.5} />
+          {!collapsed && <span>Deconnexion</span>}
+        </button>
+      </div>
 
-				{/* Categories section */}
-				{(user?.role === "admin" || user?.role === "manager") &&
-					categories.length > 0 && (
-						<div className="pt-4 mt-4 border-t border-white/10">
-							<div
-								className={`px-3 py-2 text-xs font-semibold text-slate-500 uppercase tracking-wider ${collapsed ? "text-center" : ""}`}
-							>
-								{!collapsed ? "Catégories" : "📁"}
-							</div>
-							<div className="space-y-1 mt-2">
-								{categories.slice(0, collapsed ? 3 : 10).map((cat) => (
-									<button
-										key={cat.id}
-										className="w-full flex items-center gap-3 px-3 py-2 rounded-xl text-slate-400 hover:bg-white/5 hover:text-white transition-all text-sm"
-										title={collapsed ? cat.categorie : ""}
-									>
-										<Activity size={16} />
-										{!collapsed && (
-											<span className="truncate">{cat.categorie}</span>
-										)}
-									</button>
-								))}
-							</div>
-						</div>
-					)}
-			</nav>
+      <button
+        onClick={() => setCollapsed(!collapsed)}
+        className="absolute -right-3 top-14 w-6 h-6 rounded-full bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-400 hover:text-slate-600 hover:bg-white transition-colors z-10 hidden md:flex shadow-sm"
+      >
+        <ChevronLeft size={12} className={`transition-transform ${collapsed ? "rotate-180" : ""}`} />
+      </button>
+    </div>
+  );
 
-			{/* User section */}
-			<div className="p-3 border-t border-white/10">
-				<button
-					onClick={handleLogout}
-					className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-400 hover:bg-red-500/10 hover:text-red-400 transition-all ${collapsed ? "justify-center" : ""}`}
-					title={collapsed ? "Déconnexion" : ""}
-				>
-					<LogOut size={18} />
-					{!collapsed && (
-						<span className="text-sm font-medium">Déconnexion</span>
-					)}
-				</button>
-			</div>
+  return (
+    <>
+      <aside
+        className={`hidden md:flex relative bg-[#0c1222] transition-all duration-200 ${
+          collapsed ? "w-[56px]" : "w-[210px]"
+        } flex-shrink-0 h-screen`}
+      >
+        <SidebarContent />
+      </aside>
 
-			{/* Collapse button */}
-			<button
-				onClick={() => setCollapsed(!collapsed)}
-				className="absolute -right-3 top-20 w-6 h-6 rounded-full bg-slate-700 border-2 border-slate-800 flex items-center justify-center text-white hover:bg-indigo-500 transition-all z-10"
-			>
-				{collapsed ? <ChevronRight size={12} /> : <ChevronLeft size={12} />}
-			</button>
-		</aside>
-	);
+      <button
+        onClick={() => setMobileOpen(true)}
+        className="md:hidden fixed top-2 left-2 z-50 w-9 h-9 rounded-lg bg-white border border-slate-200 shadow-sm flex items-center justify-center text-slate-600"
+        aria-label="Menu"
+      >
+        <Menu size={18} />
+      </button>
+
+      {mobileOpen && (
+        <>
+          <div className="md:hidden fixed inset-0 bg-black/40 z-40" onClick={() => setMobileOpen(false)} />
+          <aside className="md:hidden fixed left-0 top-0 bottom-0 w-[240px] bg-[#0c1222] z-50 shadow-xl">
+            <button
+              onClick={() => setMobileOpen(false)}
+              className="absolute top-2 right-2 w-7 h-7 rounded-md bg-white/[0.06] flex items-center justify-center text-slate-400 hover:text-white transition-colors"
+              aria-label="Fermer"
+            >
+              <X size={14} />
+            </button>
+            <SidebarContent />
+          </aside>
+        </>
+      )}
+    </>
+  );
 }

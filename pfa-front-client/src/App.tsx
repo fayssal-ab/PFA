@@ -1,5 +1,7 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import LandingPage from "./features/auth/pages/LandingPage";
 import LoginPage from "./features/auth/pages/LoginPage";
+import ForgotPasswordPage from "./features/auth/pages/ForgotPasswordPage";
 import DashboardPage from "./features/dashboard/DashboardPage";
 import MesReclamationsPage from "./features/reclamations/pages/MesReclamationsPage";
 import NotificationsPage from "./features/notifications/pages/NotificationsPage";
@@ -10,7 +12,9 @@ export default function App() {
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/" element={<LoginPage />} />
+        <Route path="/" element={<LandingPage />} />
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/forgot-password" element={<ForgotPasswordPage />} />
         <Route
           path="/dashboard"
           element={

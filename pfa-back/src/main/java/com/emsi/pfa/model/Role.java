@@ -1,4 +1,5 @@
 package com.emsi.pfa.model;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -12,19 +13,17 @@ public class Role {
     private Long id;
 
     @Column(unique = true, nullable = false)
-    private String name; 
+    private String name;
+
+    private String permissions;
 
     public Role() {}
-    public long getId() {
-        return id;
-    }
-    public String getName() {
-        return name;
-    }
 
-    public void setName(String name) {
-        this.name = name;
-    }
+    public long getId() { return id; }
 
-    
+    public String getName() { return name; }
+    public void setName(String name) { this.name = name; }
+
+    public String getPermissions() { return permissions; }
+    public void setPermissions(String permissions) { this.permissions = permissions; }
 }

@@ -8,6 +8,8 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.CascadeType;
 
+import java.time.LocalDateTime;
+
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 
@@ -22,6 +24,10 @@ public class User {
     private String prenom;
     private String email;
     private String password;
+    private LocalDateTime dateCreation = LocalDateTime.now();
+    private String questionSecurite;
+    @JsonIgnore
+    private String reponseSecurite;
     @ManyToOne
     @JoinColumn(name = "role_id") 
     private Role role;
@@ -114,5 +120,28 @@ public class User {
     public void setClient(Client client) {
         this.client = client;
     }
-    
+
+    public String getQuestionSecurite() {
+        return questionSecurite;
+    }
+
+    public void setQuestionSecurite(String questionSecurite) {
+        this.questionSecurite = questionSecurite;
+    }
+
+    public String getReponseSecurite() {
+        return reponseSecurite;
+    }
+
+    public void setReponseSecurite(String reponseSecurite) {
+        this.reponseSecurite = reponseSecurite;
+    }
+
+    public LocalDateTime getDateCreation() {
+        return dateCreation;
+    }
+
+    public void setDateCreation(LocalDateTime dateCreation) {
+        this.dateCreation = dateCreation;
+    }
 }

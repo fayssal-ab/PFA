@@ -13,6 +13,7 @@ public class Administrateur {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+    private int niveau;
     @JsonIgnore
     @OneToOne
     @JoinColumn(name = "user_id")
@@ -32,5 +33,12 @@ public class Administrateur {
     public void setUser(User user) {
         this.user = user;
     }
-    
+
+    public int getNiveau() {
+        return niveau;
+    }
+
+    public void setNiveau(int niveau) {
+        this.niveau = niveau;
+    }
 }

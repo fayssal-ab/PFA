@@ -50,6 +50,8 @@ export interface Reclamation {
 	categorie?: Categorie;
 	client?: Client;
 	affectations: Affectation;
+	valideeParAdmin?: boolean | null;
+	confirmeParClient?: boolean | null;
 }
 
 export interface Client {
@@ -158,6 +160,7 @@ export interface Commentaire {
 	dateCommentaire?: string;
 	user?: User;
 	reclamation?: Reclamation;
+	approuveParAdmin?: boolean | null;
 }
 
 export interface PieceJointe {

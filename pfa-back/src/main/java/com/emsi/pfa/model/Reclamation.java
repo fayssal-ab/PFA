@@ -29,7 +29,10 @@ public class Reclamation {
     @ManyToOne
     @JoinColumn(name = "priority_id")
     private Priority priority;
-    
+
+    private Boolean valideeParAdmin;
+    private Boolean confirmeParClient;
+
     public Reclamation() {}
     
     public Long getId() {
@@ -100,5 +103,19 @@ public class Reclamation {
         this.client = client;
     }
 
-    
+    public Boolean getValideeParAdmin() {
+        return valideeParAdmin;
+    }
+
+    public void setValideeParAdmin(Boolean valideeParAdmin) {
+        this.valideeParAdmin = valideeParAdmin;
+    }
+
+    public Boolean getConfirmeParClient() {
+        return confirmeParClient;
+    }
+
+    public void setConfirmeParClient(Boolean confirmeParClient) {
+        this.confirmeParClient = confirmeParClient;
+    }
 }

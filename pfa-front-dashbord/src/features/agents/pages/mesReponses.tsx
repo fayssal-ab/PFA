@@ -63,7 +63,7 @@ export default function MesReponsesPage() {
 		return (
 			<DashboardLayout>
 				<div className="flex justify-center py-24">
-					<div className="w-10 h-10 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin" />
+					<div className="w-10 h-10 border-4 border-slate-200 border-t-teal-600 rounded-full animate-spin" />
 				</div>
 			</DashboardLayout>
 		);
@@ -71,34 +71,34 @@ export default function MesReponsesPage() {
 
 	return (
 		<DashboardLayout>
-			<div className="mb-8">
-				<p className="text-[13px] text-indigo-400 font-semibold uppercase tracking-[0.25em]">
+			<div className="mb-6">
+				<p className="text-[13px] text-teal-600 font-semibold uppercase tracking-wider">
 					Espace Agent
 				</p>
 
-				<h1 className="text-[34px] font-bold text-white mt-2">
+				<h1 className="text-[26px] font-bold text-slate-900 mt-2">
 					Mes Réponses
 				</h1>
 
-				<p className="text-gray-400 mt-2">
+				<p className="text-slate-500 mt-2">
 					Historique des réponses envoyées
 				</p>
 			</div>
 
 			{reponses.length === 0 ? (
-				<div className="bg-[#111827]/80 backdrop-blur-xl rounded-3xl border border-white/10 py-24 flex flex-col items-center">
-					<div className="w-20 h-20 rounded-3xl bg-indigo-500/10 flex items-center justify-center mb-5">
+				<div className="bg-white rounded-lg border border-slate-200 py-24 flex flex-col items-center">
+					<div className="w-20 h-20 rounded-lg bg-teal-50 flex items-center justify-center mb-5">
 						<MessageSquare
 							size={40}
-							className="text-indigo-400"
+							className="text-teal-600"
 						/>
 					</div>
 
-					<p className="text-white text-lg font-bold">
+					<p className="text-slate-900 text-lg font-bold">
 						Aucune réponse
 					</p>
 
-					<p className="text-gray-400 mt-2">
+					<p className="text-slate-500 mt-2">
 						Vous n'avez encore envoyé aucune réponse
 					</p>
 				</div>
@@ -107,31 +107,31 @@ export default function MesReponsesPage() {
 					{reponses.map((r) => (
 						<div
 							key={r.id}
-							className="bg-[#111827]/80 backdrop-blur-xl rounded-3xl border border-white/10 shadow-2xl p-6"
+							className="bg-white rounded-lg border border-slate-200 p-5"
 						>
 							<div className="flex justify-between items-start mb-5">
 								<div className="flex items-center gap-3">
-									<div className="w-12 h-12 rounded-2xl bg-indigo-500/10 flex items-center justify-center">
+									<div className="w-12 h-12 rounded-md bg-teal-50 flex items-center justify-center">
 										<User
 											size={18}
-											className="text-indigo-300"
+											className="text-teal-600"
 										/>
 									</div>
 
 									<div>
-										<p className="text-white font-semibold">
+										<p className="text-slate-900 font-semibold">
 											{r.agent?.user?.nom}{" "}
 											{r.agent?.user?.prenom}
 										</p>
 
-										<p className="text-xs text-gray-400">
+										<p className="text-xs text-slate-500">
 											Agent
 										</p>
 									</div>
 								</div>
 
 								<div className="flex items-center gap-3">
-									<div className="flex items-center gap-2 text-sm text-gray-400">
+									<div className="flex items-center gap-2 text-sm text-slate-500">
 										<Calendar size={15} />
 
 										{r.dateCreation
@@ -152,18 +152,18 @@ export default function MesReponsesPage() {
 										onClick={() =>
 											deleteReponse(r.id)
 										}
-										className="w-10 h-10 rounded-xl bg-red-500/10 border border-red-500/20 flex items-center justify-center hover:bg-red-500/20 transition-all"
+										className="w-10 h-10 rounded-md bg-red-50 border border-red-200 flex items-center justify-center hover:bg-red-100 transition-all"
 									>
 										<Trash2
 											size={16}
-											className="text-red-400"
+											className="text-red-500"
 										/>
 									</button>
 								</div>
 							</div>
 
-							<div className="bg-white/5 border border-white/10 rounded-2xl p-5">
-								<p className="text-gray-200 leading-relaxed whitespace-pre-wrap">
+							<div className="bg-slate-50 border border-slate-200 rounded-lg p-5">
+								<p className="text-slate-700 leading-relaxed whitespace-pre-wrap">
 									{r.reponse}
 								</p>
 							</div>
@@ -179,12 +179,12 @@ export default function MesReponsesPage() {
 							setPage(Math.max(0, page - 1))
 						}
 						disabled={page === 0}
-						className="h-11 px-5 rounded-2xl border border-white/10 bg-[#111827] text-gray-300 hover:bg-[#1e293b] disabled:opacity-40"
+						className="h-8 px-5 rounded-md border border-slate-200 text-slate-700 hover:bg-slate-50 disabled:opacity-40 text-xs"
 					>
 						Précédent
 					</button>
 
-					<div className="px-4 py-2 rounded-2xl bg-white/5 border border-white/10 text-sm text-gray-300">
+					<div className="px-4 py-2 rounded-md bg-slate-50 border border-slate-200 text-sm text-slate-700">
 						{page + 1} / {totalPages}
 					</div>
 
@@ -198,7 +198,7 @@ export default function MesReponsesPage() {
 							)
 						}
 						disabled={page >= totalPages - 1}
-						className="h-11 px-5 rounded-2xl bg-gradient-to-r from-indigo-500 to-purple-600 text-white disabled:opacity-40"
+						className="h-8 px-5 rounded-md bg-teal-600 text-white hover:bg-teal-700 disabled:opacity-40 text-xs"
 					>
 						Suivant
 					</button>

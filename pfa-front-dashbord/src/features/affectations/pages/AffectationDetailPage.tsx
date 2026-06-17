@@ -183,7 +183,7 @@ export default function AffectationDetailPage() {
 	const traiterReclamation = async () => {
 		if (!selectedStatus) return;
 		try {
-			await api.put(`/reclamations/reclamation/${id}/status/${selectedStatus}`);
+			await api.put(`/reclamations/reclamation/${id}/status/${parseInt(selectedStatus, 10)}`);
 			if (reponse.trim()) {
 				await api.post("/reponse-reclamations/create-reponse", {
 					reponse,
@@ -203,7 +203,7 @@ export default function AffectationDetailPage() {
 		return (
 			<DashboardLayout>
 				<div className="flex items-center justify-center h-[60vh]">
-					<div className="w-10 h-10 border-[3px] border-white/10 border-t-violet-500 rounded-full animate-spin" />
+					<div className="w-10 h-10 border-[3px] border-slate-200 border-t-teal-600 rounded-full animate-spin" />
 				</div>
 			</DashboardLayout>
 		);
@@ -250,6 +250,7 @@ export default function AffectationDetailPage() {
 					sendComment={sendComment}
 					sending={sending}
 					user={user}
+					onRefresh={loadCommentaires}
 				/>
 			</div>
 		</DashboardLayout>

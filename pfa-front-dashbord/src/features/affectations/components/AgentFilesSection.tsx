@@ -27,29 +27,29 @@ export default function AgentFilesSection({
 	const isAgent = user?.role === "agent" || user?.role?.includes("agent");
 
 	return (
-		<div className="bg-[#1a1a2e] rounded-2xl border border-white/5 overflow-hidden">
-			<div className="px-5 py-4 border-b border-white/5 flex items-center justify-between">
+		<div className="bg-white rounded-lg border border-slate-200 overflow-hidden">
+			<div className="px-4 py-3 border-b border-slate-200 flex items-center justify-between">
 				<div className="flex items-center gap-2.5">
-					<div className="w-8 h-8 rounded-xl bg-emerald-500/15 flex items-center justify-center">
-						<FileText size={15} className="text-emerald-400" />
+					<div className="w-8 h-8 rounded-md bg-emerald-50 flex items-center justify-center">
+						<FileText size={15} className="text-emerald-600" />
 					</div>
 					<div>
-						<h2 className="text-sm font-bold text-white">
+						<h2 className="text-sm font-bold text-slate-900">
 							{isAgent ? "Mes pièces jointes" : "Pièces jointes agent"}
 						</h2>
-						<p className="text-[11px] text-gray-600">{agentFiles.length} fichier{agentFiles.length !== 1 ? "s" : ""}</p>
+						<p className="text-[11px] text-slate-500">{agentFiles.length} fichier{agentFiles.length !== 1 ? "s" : ""}</p>
 					</div>
 				</div>
 
 				{isAgent && (
-					<label className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold cursor-pointer transition-all ${
+					<label className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-semibold cursor-pointer transition-all ${
 						uploading
-							? "bg-white/5 text-gray-500 cursor-wait"
-							: "bg-emerald-500/15 border border-emerald-500/25 text-emerald-300 hover:bg-emerald-500/25"
+							? "bg-slate-50 text-slate-400 cursor-wait"
+							: "bg-teal-600 text-white hover:bg-teal-700"
 					}`}>
 						{uploading ? (
 							<>
-								<div className="w-3 h-3 border-2 border-emerald-400/30 border-t-emerald-400 rounded-full animate-spin" />
+								<div className="w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin" />
 								Envoi...
 							</>
 						) : (
@@ -66,31 +66,31 @@ export default function AgentFilesSection({
 			<div className="p-4 space-y-2">
 				{agentFiles.length === 0 ? (
 					<div className="flex flex-col items-center justify-center py-10 text-center">
-						<div className="w-12 h-12 rounded-2xl bg-white/5 flex items-center justify-center mb-3">
-							<Paperclip size={20} className="text-gray-600" />
+						<div className="w-12 h-12 rounded-lg bg-slate-50 flex items-center justify-center mb-3">
+							<Paperclip size={20} className="text-slate-400" />
 						</div>
-						<p className="text-sm text-gray-600">Aucun fichier joint</p>
+						<p className="text-sm text-slate-500">Aucun fichier joint</p>
 						{isAgent && (
-							<p className="text-xs text-gray-700 mt-1">Cliquez sur "Ajouter" pour joindre un fichier</p>
+							<p className="text-xs text-slate-400 mt-1">Cliquez sur "Ajouter" pour joindre un fichier</p>
 						)}
 					</div>
 				) : (
 					agentFiles.map((f) => (
 						<div
 							key={f.id}
-							className="flex items-center justify-between bg-white/[0.03] hover:bg-white/[0.06] border border-white/5 hover:border-emerald-500/20 rounded-xl px-3 py-2.5 transition-all group"
+							className="flex items-center justify-between bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-lg px-3 py-2.5 transition-all group"
 						>
 							<div className="flex items-center gap-3 min-w-0">
-								<div className="w-8 h-8 rounded-lg bg-emerald-500/15 flex items-center justify-center shrink-0">
-									<Paperclip size={13} className="text-emerald-400" />
+								<div className="w-8 h-8 rounded-md bg-emerald-50 flex items-center justify-center shrink-0">
+									<Paperclip size={13} className="text-emerald-600" />
 								</div>
-								<p className="text-sm text-gray-300 truncate font-medium">{f.fichier}</p>
+								<p className="text-sm text-slate-700 truncate font-medium">{f.fichier}</p>
 							</div>
 							<div className="flex items-center gap-1.5 shrink-0 ml-2">
 								<button
 									onClick={() => downloadFile(f.fichier)}
 									title="Télécharger"
-									className="w-8 h-8 rounded-lg bg-white/5 hover:bg-emerald-500/20 text-gray-500 hover:text-emerald-300 flex items-center justify-center transition-all"
+									className="w-8 h-8 rounded-md bg-white hover:bg-emerald-50 text-slate-400 hover:text-emerald-600 flex items-center justify-center transition-all border border-slate-200"
 								>
 									<Download size={14} />
 								</button>
@@ -98,7 +98,7 @@ export default function AgentFilesSection({
 									<button
 										onClick={() => deleteFile(f.id)}
 										title="Supprimer"
-										className="w-8 h-8 rounded-lg bg-white/5 hover:bg-red-500/20 text-gray-500 hover:text-red-400 flex items-center justify-center transition-all"
+										className="w-8 h-8 rounded-md bg-white hover:bg-red-50 text-slate-400 hover:text-red-500 flex items-center justify-center transition-all border border-slate-200"
 									>
 										<Trash2 size={14} />
 									</button>
@@ -114,17 +114,17 @@ export default function AgentFilesSection({
 					<button
 						disabled={page === 0}
 						onClick={() => onPageChange(page - 1)}
-						className="w-8 h-8 rounded-lg bg-white/5 border border-white/5 text-gray-400 hover:bg-white/10 hover:text-white disabled:opacity-30 disabled:cursor-not-allowed transition-all flex items-center justify-center"
+						className="w-8 h-8 rounded-md bg-white border border-slate-200 text-slate-500 hover:bg-slate-50 hover:text-slate-700 disabled:opacity-30 disabled:cursor-not-allowed transition-all flex items-center justify-center"
 					>
 						<ChevronLeft size={14} />
 					</button>
-					<span className="text-xs text-gray-500 font-medium px-2">
+					<span className="text-xs text-slate-500 font-medium px-2">
 						{page + 1} / {Math.max(totalPages, 1)}
 					</span>
 					<button
 						disabled={page + 1 >= totalPages}
 						onClick={() => onPageChange(page + 1)}
-						className="w-8 h-8 rounded-lg bg-white/5 border border-white/5 text-gray-400 hover:bg-white/10 hover:text-white disabled:opacity-30 disabled:cursor-not-allowed transition-all flex items-center justify-center"
+						className="w-8 h-8 rounded-md bg-white border border-slate-200 text-slate-500 hover:bg-slate-50 hover:text-slate-700 disabled:opacity-30 disabled:cursor-not-allowed transition-all flex items-center justify-center"
 					>
 						<ChevronRight size={14} />
 					</button>

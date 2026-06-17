@@ -1,0 +1,12 @@
+package com.emsi.pfa.dto;
+
+import jakarta.validation.constraints.NotBlank;
+
+public class RefreshTokenRequest {
+
+    @NotBlank(message = "Le refresh token est requis")
+    private String refreshToken;
+
+    public String getRefreshToken() { return refreshToken; }
+    public void setRefreshToken(String refreshToken) { this.refreshToken = refreshToken; }
+}

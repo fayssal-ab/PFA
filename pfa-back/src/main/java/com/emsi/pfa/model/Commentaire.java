@@ -21,6 +21,8 @@ public class Commentaire {
     @JoinColumn(name = "reclamation_id")
     private Reclamation reclamation;
 
+    private Boolean approuveParAdmin;
+
     public Commentaire() {}
     
         public long getId() {
@@ -61,5 +63,11 @@ public class Commentaire {
         this.reclamation = reclamation;
     }
 
-    
+    public Boolean getApprouveParAdmin() {
+        return approuveParAdmin;
+    }
+
+    public void setApprouveParAdmin(Boolean approuveParAdmin) {
+        this.approuveParAdmin = approuveParAdmin;
+    }
 }

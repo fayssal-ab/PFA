@@ -43,6 +43,8 @@ export interface Reclamation {
   priority?: Priority;
   categorie?: CategorieReclamation;
   client?: Client;
+  valideeParAdmin?: boolean | null;
+  confirmeParClient?: boolean | null;
 }
 
 export interface Status {
@@ -101,4 +103,5 @@ export interface Commentaire {
   dateCommentaire?: string;
   user?: User;
   reclamation?: Reclamation;
+  approuveParAdmin?: boolean | null;
 }

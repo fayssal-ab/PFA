@@ -6,13 +6,15 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 
+import java.time.LocalDateTime;
 
 @Entity
 public class ReponseReclamation {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
-    String reponse;
+    private String reponse;
+    private LocalDateTime dateCreation = LocalDateTime.now();
     @ManyToOne
     @JoinColumn(name = "agent_id")
     private Agent agent;
@@ -51,9 +53,13 @@ public class ReponseReclamation {
          this.reclamation = reclamation;
      }
 
+     public LocalDateTime getDateCreation() {
+         return dateCreation;
+     }
 
-
-
+     public void setDateCreation(LocalDateTime dateCreation) {
+         this.dateCreation = dateCreation;
+     }
 
 
     

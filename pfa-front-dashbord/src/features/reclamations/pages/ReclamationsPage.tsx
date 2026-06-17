@@ -11,6 +11,7 @@ import {
 	Send,
 	Eye,
 	Bell,
+	ShieldCheck,
 } from "lucide-react";
 import {
 	Reclamation,
@@ -58,7 +59,6 @@ export default function ReclamationsPage() {
 		load();
 		loadFilters();
 
-		// Écouter les changements de catégorie depuis la sidebar
 		const handleCategorieChange = (event: CustomEvent) => {
 			const categorie = event.detail;
 			setSelectedCategorie(categorie);
@@ -188,12 +188,29 @@ export default function ReclamationsPage() {
 		setCategories(c.data || []);
 	};
 
-	const changeStatus = async (recId: number, statusId: string) => {
+const changeStatus = async (recId: number, statusId: string) => {
+    try {
+        const statusIdNumber = parseInt(statusId);
+        console.log("Changement status - ID:", recId, "Status ID:", statusIdNumber);
+
+        await api.put(`/reclamations/reclamation/${recId}/status/${statusIdNumber}`);
+        load();
+    } catch (e) {
+        console.error("Erreur changement status:", e);
+    }
+};
+
+	const [validating, setValidating] = useState<number | null>(null);
+
+	const handleValider = async (recId: number) => {
+		setValidating(recId);
 		try {
-			await api.put(`/reclamations/reclamation/${recId}/status/${statusId}`);
+			await api.put(`/reclamations/reclamation/${recId}/valider`);
 			load();
 		} catch (e) {
 			console.error(e);
+		} finally {
+			setValidating(null);
 		}
 	};
 
@@ -236,7 +253,7 @@ export default function ReclamationsPage() {
 			return "bg-amber-50 text-amber-700 ring-amber-200";
 		if (n.includes("ouvert") || n.includes("nouveau") || n.includes("attente"))
 			return "bg-blue-50 text-blue-700 ring-blue-200";
-		return "bg-gray-100 text-gray-700 ring-gray-200";
+		return "bg-slate-100 text-slate-700 ring-slate-200";
 	};
 
 	const priorityColor = (p?: string): string => {
@@ -247,10 +264,9 @@ export default function ReclamationsPage() {
 			return "bg-amber-50 text-amber-700 ring-amber-200";
 		if (n.includes("basse") || n.includes("low"))
 			return "bg-green-50 text-green-700 ring-green-200";
-		return "bg-gray-100 text-gray-600 ring-gray-200";
+		return "bg-slate-100 text-slate-600 ring-slate-200";
 	};
 
-	// Filtrer les réclamations
 	let filtered = recs.filter(
 		(r) =>
 			r.titre?.toLowerCase().includes(search.toLowerCase()) ||
@@ -283,7 +299,7 @@ export default function ReclamationsPage() {
 		return (
 			<DashboardLayout>
 				<div className="flex items-center justify-center h-[60vh]">
-					<div className="w-8 h-8 border-[3px] border-gray-200 border-t-indigo-600 rounded-full animate-spin" />
+					<div className="w-8 h-8 border-[3px] border-slate-200 border-t-teal-600 rounded-full animate-spin" />
 				</div>
 			</DashboardLayout>
 		);
@@ -291,45 +307,44 @@ export default function ReclamationsPage() {
 	return (
 		<DashboardLayout>
 			<div className="mb-6">
-				<p className="text-[13px] text-gray-400 font-medium uppercase tracking-wider mb-1">
+				<p className="text-[13px] text-slate-400 font-medium uppercase tracking-wider mb-1">
 					Gestion
 				</p>
-				<h1 className="text-[26px] font-bold text-[#1a1a2e] tracking-tight">
+				<h1 className="text-[26px] font-bold text-slate-900 tracking-tight">
 					Réclamations
 				</h1>
-				<p className="text-gray-500 text-[14px] mt-1">
+				<p className="text-slate-500 text-[14px] mt-1">
 					Gérez et suivez toutes les réclamations des clients
 				</p>
 			</div>
 
-			{/* Barre de recherche et filtres */}
 			<div className="flex flex-col gap-3 mb-5">
 				<div className="flex flex-col sm:flex-row gap-3">
 					<div className="relative flex-1 sm:max-w-[360px]">
 						<Search
 							size={15}
-							className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"
+							className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"
 						/>
 						<input
 							type="text"
 							placeholder="Rechercher par titre, description ou client..."
 							value={search}
 							onChange={(e) => setSearch(e.target.value)}
-							className="w-full h-10 bg-white border border-gray-100 rounded-xl pl-10 pr-4 text-[13px] outline-none focus:border-indigo-300 transition-all shadow-sm"
+							className="w-full h-10 bg-white border border-slate-200 rounded-md pl-10 pr-4 text-[13px] outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20 transition-all"
 						/>
 					</div>
 					<button
 						onClick={() => setShowFilters(!showFilters)}
-						className={`h-10 px-4 rounded-xl text-[13px] font-medium flex items-center gap-2 transition-all ${
+						className={`h-10 px-4 rounded-md text-[13px] font-medium flex items-center gap-2 transition-all ${
 							showFilters || activeFiltersCount > 0
-								? "bg-indigo-50 text-indigo-600 border border-indigo-200"
-								: "bg-white border border-gray-100 text-gray-600 hover:bg-gray-50"
+								? "bg-teal-50 text-teal-600 border border-teal-200"
+								: "bg-white border border-slate-200 text-slate-700 hover:bg-slate-50"
 						}`}
 					>
 						<Filter size={14} />
 						Filtres
 						{activeFiltersCount > 0 && (
-							<span className="bg-indigo-500 text-white text-[10px] px-1.5 py-0.5 rounded-full">
+							<span className="bg-teal-600 text-white text-[10px] px-1.5 py-0.5 rounded-full">
 								{activeFiltersCount}
 							</span>
 						)}
@@ -337,7 +352,7 @@ export default function ReclamationsPage() {
 					{activeFiltersCount > 0 && (
 						<button
 							onClick={clearFilters}
-							className="h-10 px-3 rounded-xl text-[12px] text-gray-400 hover:text-red-500 flex items-center gap-1 transition-colors"
+							className="h-10 px-3 rounded-md text-[12px] text-slate-400 hover:text-red-500 flex items-center gap-1 transition-colors"
 						>
 							<X size={13} />
 							Effacer
@@ -345,18 +360,17 @@ export default function ReclamationsPage() {
 					)}
 				</div>
 
-				{/* Panneau des filtres */}
 				{showFilters && (
-					<div className="bg-gray-50 rounded-xl p-4 border border-gray-100">
+					<div className="bg-slate-50 rounded-lg p-4 border border-slate-200">
 						<div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
 							<div>
-								<label className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider block mb-1">
+								<label className="text-[11px] font-medium text-slate-500 uppercase tracking-wider block mb-1">
 									Statut
 								</label>
 								<select
 									value={filterStatus}
 									onChange={(e) => setFilterStatus(e.target.value)}
-									className="w-full h-9 bg-white border border-gray-200 rounded-lg px-3 text-[13px] outline-none focus:border-indigo-300"
+									className="w-full h-9 bg-white border border-slate-200 rounded-md px-3 text-[13px] outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20"
 								>
 									<option value="">Tous les statuts</option>
 									{statuses.map((s) => (
@@ -367,13 +381,13 @@ export default function ReclamationsPage() {
 								</select>
 							</div>
 							<div>
-								<label className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider block mb-1">
+								<label className="text-[11px] font-medium text-slate-500 uppercase tracking-wider block mb-1">
 									Priorité
 								</label>
 								<select
 									value={filterPriority}
 									onChange={(e) => setFilterPriority(e.target.value)}
-									className="w-full h-9 bg-white border border-gray-200 rounded-lg px-3 text-[13px] outline-none focus:border-indigo-300"
+									className="w-full h-9 bg-white border border-slate-200 rounded-md px-3 text-[13px] outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20"
 								>
 									<option value="">Toutes les priorités</option>
 									{priorities.map((p) => (
@@ -384,13 +398,13 @@ export default function ReclamationsPage() {
 								</select>
 							</div>
 							<div>
-								<label className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider block mb-1">
+								<label className="text-[11px] font-medium text-slate-500 uppercase tracking-wider block mb-1">
 									Catégorie
 								</label>
 								<select
 									value={filterCategorie}
 									onChange={(e) => setFilterCategorie(e.target.value)}
-									className="w-full h-9 bg-white border border-gray-200 rounded-lg px-3 text-[13px] outline-none focus:border-indigo-300"
+									className="w-full h-9 bg-white border border-slate-200 rounded-md px-3 text-[13px] outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20"
 								>
 									<option value="">Toutes les catégories</option>
 									{categories.map((c) => (
@@ -405,13 +419,12 @@ export default function ReclamationsPage() {
 				)}
 			</div>
 
-			{/* Résultats */}
-			<div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-				<div className="px-5 py-3 border-b border-gray-100 flex justify-between items-center">
-					<div className="text-[12px] text-gray-400">
+			<div className="bg-white rounded-lg border border-slate-200 overflow-hidden">
+				<div className="px-5 py-3 border-b border-slate-200 flex justify-between items-center">
+					<div className="text-[12px] text-slate-400">
 						{filtered.length} réclamation{filtered.length > 1 ? "s" : ""}
 						{filterCategorie && (
-							<span className="ml-2 bg-indigo-50 text-indigo-600 px-2 py-0.5 rounded-full text-[10px]">
+							<span className="ml-2 bg-teal-50 text-teal-600 px-2 py-0.5 rounded-md text-[10px]">
 								{filterCategorie}
 							</span>
 						)}
@@ -420,29 +433,29 @@ export default function ReclamationsPage() {
 				<div className="overflow-x-auto">
 					<table className="w-full">
 						<thead>
-							<tr className="bg-gray-50/60">
-								<th className="text-left text-[11px] font-bold text-gray-400 uppercase tracking-wider px-5 py-3">
+							<tr className="bg-slate-50">
+								<th className="text-left text-[11px] font-medium text-slate-500 uppercase tracking-wider px-5 py-3">
 									ID
 								</th>
-								<th className="text-left text-[11px] font-bold text-gray-400 uppercase tracking-wider px-5 py-3">
+								<th className="text-left text-[11px] font-medium text-slate-500 uppercase tracking-wider px-5 py-3">
 									Titre
 								</th>
-								<th className="text-left text-[11px] font-bold text-gray-400 uppercase tracking-wider px-5 py-3">
+								<th className="text-left text-[11px] font-medium text-slate-500 uppercase tracking-wider px-5 py-3">
 									Client
 								</th>
-								<th className="text-left text-[11px] font-bold text-gray-400 uppercase tracking-wider px-5 py-3">
+								<th className="text-left text-[11px] font-medium text-slate-500 uppercase tracking-wider px-5 py-3">
 									Catégorie
 								</th>
-								<th className="text-left text-[11px] font-bold text-gray-400 uppercase tracking-wider px-5 py-3">
+								<th className="text-left text-[11px] font-medium text-slate-500 uppercase tracking-wider px-5 py-3">
 									Statut
 								</th>
-								<th className="text-left text-[11px] font-bold text-gray-400 uppercase tracking-wider px-5 py-3">
+								<th className="text-left text-[11px] font-medium text-slate-500 uppercase tracking-wider px-5 py-3">
 									Priorité
 								</th>
-								<th className="text-left text-[11px] font-bold text-gray-400 uppercase tracking-wider px-5 py-3">
+								<th className="text-left text-[11px] font-medium text-slate-500 uppercase tracking-wider px-5 py-3">
 									Date
 								</th>
-								<th className="text-left text-[11px] font-bold text-gray-400 uppercase tracking-wider px-5 py-3">
+								<th className="text-left text-[11px] font-medium text-slate-500 uppercase tracking-wider px-5 py-3">
 									Actions
 								</th>
 							</tr>
@@ -453,9 +466,9 @@ export default function ReclamationsPage() {
 									<td colSpan={8} className="text-center py-16">
 										<AlertTriangle
 											size={32}
-											className="mx-auto mb-3 text-gray-200"
+											className="mx-auto mb-3 text-slate-300"
 										/>
-										<p className="text-[14px] text-gray-400">
+										<p className="text-[14px] text-slate-400">
 											Aucune réclamation trouvée
 										</p>
 										{(search ||
@@ -464,7 +477,7 @@ export default function ReclamationsPage() {
 											filterCategorie) && (
 											<button
 												onClick={clearFilters}
-												className="mt-3 text-indigo-500 text-[12px] hover:underline"
+												className="mt-3 text-teal-600 text-[12px] hover:underline"
 											>
 												Effacer les filtres
 											</button>
@@ -475,18 +488,18 @@ export default function ReclamationsPage() {
 								filtered.map((r) => (
 									<tr
 										key={r.id}
-										className="border-t border-gray-50/80 hover:bg-indigo-50/20 transition-colors"
+										className="border-t border-slate-100 hover:bg-slate-50 transition-colors"
 									>
-										<td className="px-5 py-3 text-[12px] text-gray-400 font-mono font-bold">
+										<td className="px-5 py-3 text-[12px] text-slate-400 font-mono font-bold">
 											#{r.id}
 										</td>
 										<td
-											className="px-5 py-3 text-[13px] text-[#1a1a2e] font-semibold max-w-[200px] truncate"
+											className="px-5 py-3 text-[13px] text-slate-900 font-semibold max-w-[200px] truncate"
 											title={r.titre}
 										>
 											{r.titre || "—"}
 										</td>
-										<td className="px-5 py-3 text-[13px] text-gray-600">
+										<td className="px-5 py-3 text-[13px] text-slate-600">
 											{r.client?.user?.nom} {r.client?.user?.prenom}
 										</td>
 										<td className="px-5 py-3">
@@ -498,7 +511,7 @@ export default function ReclamationsPage() {
 											<select
 												value={r.status?.id || ""}
 												onChange={(e) => changeStatus(r.id, e.target.value)}
-												className={`px-2 py-1 rounded-lg text-[11px] font-bold border-0 outline-none cursor-pointer ${statusColor(r.status?.status)}`}
+												className={`px-2 py-1 rounded-md text-[11px] font-bold border-0 outline-none cursor-pointer ${statusColor(r.status?.status)}`}
 											>
 												{statuses.map((s) => (
 													<option key={s.id} value={s.id}>
@@ -511,7 +524,7 @@ export default function ReclamationsPage() {
 											<select
 												value={r.priority?.id || ""}
 												onChange={(e) => changePriority(r.id, e.target.value)}
-												className={`px-2 py-1 rounded-lg text-[11px] font-bold border-0 outline-none cursor-pointer ${priorityColor(r.priority?.priority)}`}
+												className={`px-2 py-1 rounded-md text-[11px] font-bold border-0 outline-none cursor-pointer ${priorityColor(r.priority?.priority)}`}
 											>
 												{priorities.map((p) => (
 													<option key={p.id} value={p.id}>
@@ -529,33 +542,65 @@ export default function ReclamationsPage() {
 											<button
 												onClick={() => handleDelete(r.id)}
 												disabled={deleting === r.id}
-												className="w-7 h-7 rounded-lg flex items-center justify-center text-gray-300 hover:bg-red-50 hover:text-red-500 transition-all"
+												className="w-7 h-7 rounded-md flex items-center justify-center text-slate-300 hover:bg-red-50 hover:text-red-500 transition-all"
 											>
 												{deleting === r.id ? (
-													<div className="w-3.5 h-3.5 border-2 border-gray-200 border-t-gray-500 rounded-full animate-spin" />
+													<div className="w-3.5 h-3.5 border-2 border-slate-200 border-t-slate-500 rounded-full animate-spin" />
 												) : (
 													<Trash2 size={14} />
 												)}
 											</button>
-											<button
-												onClick={() => openAffectModal(r)}
-												className="w-8 h-8 rounded-lg flex items-center justify-center bg-indigo-50 text-indigo-600 hover:bg-indigo-100 transition-all"
-											>
-												<UserCheck size={15} />
-											</button>
+											{r.status?.status?.toLowerCase().includes("résolu") && r.valideeParAdmin === false && (
+												<button
+													onClick={() => handleValider(r.id)}
+													disabled={validating === r.id}
+													className="h-7 px-2.5 rounded-md flex items-center justify-center gap-1 bg-emerald-50 text-emerald-600 hover:bg-emerald-100 transition-all text-[11px] font-semibold"
+													title="Valider et envoyer au client"
+												>
+													{validating === r.id ? (
+														<div className="w-3.5 h-3.5 border-2 border-emerald-200 border-t-emerald-600 rounded-full animate-spin" />
+													) : (
+														<><ShieldCheck size={14} /> Valider</>
+													)}
+												</button>
+											)}
+											{r.status?.status?.toLowerCase().includes("résolu") && r.valideeParAdmin === false && (
+												<span className="text-[10px] text-amber-600 bg-amber-50 px-2 py-0.5 rounded-md font-medium">
+													En validation
+												</span>
+											)}
+											{!(r.valideeParAdmin === true && r.confirmeParClient === null) && (
+												<button
+													onClick={() => openAffectModal(r)}
+													className="w-8 h-8 rounded-md flex items-center justify-center bg-teal-50 text-teal-600 hover:bg-teal-100 transition-all"
+													title="Affecter"
+												>
+													<UserCheck size={15} />
+												</button>
+											)}
 											<button
 												onClick={() => navigate(`/detail-reclamations/${r.id}`)}
-												className="w-8 h-8 rounded-lg flex items-center justify-center bg-blue-50 text-blue-600 hover:bg-blue-100"
+												className="w-8 h-8 rounded-md flex items-center justify-center bg-blue-50 text-blue-600 hover:bg-blue-100"
 											>
 												<Eye size={15} />
 											</button>
 											<button
 												type="button"
 												onClick={() => openNotificationModal(r)}
-												className="w-8 h-8 rounded-lg flex items-center justify-center bg-amber-50 text-amber-600 hover:bg-amber-100"
+												className="w-8 h-8 rounded-md flex items-center justify-center bg-amber-50 text-amber-600 hover:bg-amber-100"
 											>
 												<Bell size={15} />
 											</button>
+											{r.confirmeParClient === true && (
+												<span className="text-[10px] text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-md font-medium">
+													Confirmee
+												</span>
+											)}
+											{r.confirmeParClient === false && (
+												<span className="text-[10px] text-red-600 bg-red-50 px-2 py-0.5 rounded-md font-medium">
+													Rejetee
+												</span>
+											)}
 										</td>
 									</tr>
 								))
@@ -566,37 +611,37 @@ export default function ReclamationsPage() {
 			</div>
 
 			{showAffectModal && (
-				<div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-					<div className="w-full max-w-md bg-white rounded-2xl shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-200">
-						<div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
+				<div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4">
+					<div className="w-full max-w-md bg-white rounded-lg border border-slate-200 overflow-hidden animate-in fade-in zoom-in duration-200">
+						<div className="px-5 py-4 border-b border-slate-200 flex items-center justify-between">
 							<div>
-								<h2 className="text-lg font-bold text-[#1a1a2e]">
+								<h2 className="text-lg font-bold text-slate-900">
 									Affecter la réclamation
 								</h2>
 
-								<p className="text-sm text-gray-500 mt-1">
+								<p className="text-sm text-slate-500 mt-1">
 									{selectedReclamation?.titre}
 								</p>
 							</div>
 
 							<button
 								onClick={() => setShowAffectModal(false)}
-								className="w-8 h-8 rounded-lg hover:bg-gray-100 flex items-center justify-center"
+								className="w-8 h-8 rounded-md hover:bg-slate-100 flex items-center justify-center"
 							>
 								<X size={16} />
 							</button>
 						</div>
 
-						<div className="p-6 space-y-5">
+						<div className="p-5 space-y-5">
 							<div>
-								<label className="text-[12px] font-semibold text-gray-500 block mb-2 uppercase tracking-wider">
+								<label className="text-[12px] font-semibold text-slate-500 block mb-2 uppercase tracking-wider">
 									Agent
 								</label>
 
 								<select
 									value={selectedAgent}
 									onChange={(e) => setSelectedAgent(e.target.value)}
-									className="w-full h-11 border border-gray-200 rounded-xl px-4 text-sm outline-none focus:border-indigo-400"
+									className="w-full h-11 border border-slate-200 rounded-md px-4 text-sm outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20"
 								>
 									<option value="">Sélectionner un agent</option>
 
@@ -609,7 +654,7 @@ export default function ReclamationsPage() {
 							</div>
 
 							<div>
-								<label className="text-[12px] font-semibold text-gray-500 block mb-2 uppercase tracking-wider">
+								<label className="text-[12px] font-semibold text-slate-500 block mb-2 uppercase tracking-wider">
 									Commentaire
 								</label>
 
@@ -618,15 +663,15 @@ export default function ReclamationsPage() {
 									onChange={(e) => setCommentaire(e.target.value)}
 									placeholder="Ajouter un commentaire..."
 									rows={4}
-									className="w-full border border-gray-200 rounded-xl p-4 text-sm outline-none resize-none focus:border-indigo-400"
+									className="w-full border border-slate-200 rounded-md p-4 text-sm outline-none resize-none focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20"
 								/>
 							</div>
 						</div>
 
-						<div className="px-6 py-4 border-t border-gray-100 flex justify-end gap-3">
+						<div className="px-5 py-4 border-t border-slate-200 flex justify-end gap-3">
 							<button
 								onClick={() => setShowAffectModal(false)}
-								className="h-10 px-4 rounded-xl border border-gray-200 text-sm font-medium hover:bg-gray-50"
+								className="h-8 px-4 rounded-md border border-slate-200 text-slate-700 text-xs font-medium hover:bg-slate-50"
 							>
 								Annuler
 							</button>
@@ -634,7 +679,7 @@ export default function ReclamationsPage() {
 							<button
 								onClick={handleAffectation}
 								disabled={affectLoading}
-								className="h-10 px-5 rounded-xl bg-indigo-600 text-white text-sm font-medium hover:bg-indigo-700 transition-all flex items-center gap-2 disabled:opacity-50"
+								className="h-8 px-5 rounded-md bg-teal-600 text-white text-xs font-medium hover:bg-teal-700 transition-all flex items-center gap-2 disabled:opacity-50"
 							>
 								{affectLoading ? (
 									<>
@@ -653,15 +698,15 @@ export default function ReclamationsPage() {
 				</div>
 			)}
 			{showNotificationModal && (
-				<div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-					<div className="w-full max-w-md bg-white rounded-2xl shadow-2xl">
-						<div className="px-6 py-4 border-b border-gray-100 flex justify-between">
+				<div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4">
+					<div className="w-full max-w-md bg-white rounded-lg border border-slate-200">
+						<div className="px-5 py-4 border-b border-slate-200 flex justify-between">
 							<div>
-								<h2 className="text-lg font-bold text-[#1a1a2e]">
+								<h2 className="text-lg font-bold text-slate-900">
 									Notifier le client
 								</h2>
 
-								<p className="text-sm text-gray-500">
+								<p className="text-sm text-slate-500">
 									{selectedReclamationNotification?.titre}
 								</p>
 							</div>
@@ -674,23 +719,23 @@ export default function ReclamationsPage() {
 							</button>
 						</div>
 
-						<div className="p-6">
-							<label className="block text-sm font-medium mb-2">Message</label>
+						<div className="p-5">
+							<label className="block text-sm font-medium text-slate-900 mb-2">Message</label>
 
 							<textarea
 								value={notificationMessage}
 								onChange={(e) => setNotificationMessage(e.target.value)}
 								rows={5}
 								placeholder="Écrire un message pour le client..."
-								className="w-full border border-gray-200 rounded-xl p-4 resize-none outline-none focus:border-indigo-400"
+								className="w-full border border-slate-200 rounded-md p-4 resize-none outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20"
 							/>
 						</div>
 
-						<div className="px-6 py-4 border-t border-gray-100 flex justify-end gap-3">
+						<div className="px-5 py-4 border-t border-slate-200 flex justify-end gap-3">
 							<button
 								type="button"
 								onClick={() => setShowNotificationModal(false)}
-								className="h-10 px-4 rounded-xl border border-gray-200"
+								className="h-8 px-4 rounded-md border border-slate-200 text-slate-700 text-xs font-medium hover:bg-slate-50"
 							>
 								Annuler
 							</button>
@@ -699,7 +744,7 @@ export default function ReclamationsPage() {
 								type="button"
 								onClick={handleNotification}
 								disabled={sendingNotification}
-								className="h-10 px-5 rounded-xl bg-amber-500 text-white hover:bg-amber-600 flex items-center gap-2"
+								className="h-8 px-5 rounded-md bg-amber-500 text-white text-xs font-medium hover:bg-amber-600 flex items-center gap-2"
 							>
 								<Send size={15} />
 								Envoyer

@@ -13,7 +13,8 @@ public class Notification {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    private  String message;
+    private String message;
+    private String type;
     private LocalDateTime dateEnvoi = LocalDateTime.now();
     private boolean lue = false;
 
@@ -72,6 +73,11 @@ public class Notification {
         this.reclamation = reclamation;
     }
 
-    
-    
+    public String getType() {
+        return type;
+    }
+
+    public void setType(String type) {
+        this.type = type;
+    }
 }

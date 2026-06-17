@@ -100,7 +100,7 @@ export default function NotificationsPage() {
 		return (
 			<DashboardLayout>
 				<div className="flex items-center justify-center h-[60vh]">
-					<div className="w-10 h-10 border-4 border-white/10 border-t-violet-500 rounded-full animate-spin" />
+					<div className="w-10 h-10 border-4 border-slate-200 border-t-teal-600 rounded-full animate-spin" />
 				</div>
 			</DashboardLayout>
 		);
@@ -108,19 +108,19 @@ export default function NotificationsPage() {
 
 	return (
 		<DashboardLayout>
-			<div className="mb-8">
-				<p className="text-xs uppercase tracking-widest text-violet-400 font-semibold">
+			<div className="mb-6">
+				<p className="text-xs uppercase tracking-widest text-teal-600 font-semibold">
 					Centre de notifications
 				</p>
 
 				<div className="flex items-center justify-between mt-2">
-					<h1 className="text-4xl font-bold text-white">Notifications</h1>
+					<h1 className="text-[26px] font-bold text-slate-900">Notifications</h1>
 
 					{unread > 0 && (
 						<button
 							onClick={markAllRead}
 							title="Tout marquer comme lu"
-							className="w-10 h-10 flex items-center justify-center rounded-xl bg-violet-600 hover:bg-violet-500 text-white transition-all shadow-lg shadow-violet-900/40"
+							className="w-10 h-10 flex items-center justify-center rounded-md bg-teal-600 hover:bg-teal-700 text-white transition-all"
 						>
 							<CheckCheck size={18} />
 						</button>
@@ -128,45 +128,45 @@ export default function NotificationsPage() {
 				</div>
 			</div>
 
-			<div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-			
-				<div className="bg-[#1a1a2e] rounded-2xl p-6 border border-white/5">
-					<p className="text-xs text-gray-400 uppercase tracking-widest">
+			<div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+
+				<div className="bg-white rounded-lg p-5 border border-slate-200">
+					<p className="text-xs text-slate-500 uppercase tracking-widest">
 						Total notifications
 					</p>
-					<h2 className="text-4xl font-bold text-white mt-2">
+					<h2 className="text-3xl font-bold text-slate-900 mt-2">
 						{notifs.length}
 					</h2>
 				</div>
 
-				<div className="bg-[#1a1a2e] rounded-2xl p-6 border border-violet-500/20">
-					<p className="text-xs text-gray-400 uppercase tracking-widest">
+				<div className="bg-white rounded-lg p-5 border border-teal-200">
+					<p className="text-xs text-slate-500 uppercase tracking-widest">
 						Non lues
 					</p>
-					<h2 className="text-4xl font-bold text-violet-400 mt-2">{unread}</h2>
+					<h2 className="text-3xl font-bold text-teal-600 mt-2">{unread}</h2>
 				</div>
 
-				<div className="bg-[#1a1a2e] rounded-2xl p-6 border border-emerald-500/20">
-					<p className="text-xs text-gray-400 uppercase tracking-widest">
+				<div className="bg-white rounded-lg p-5 border border-emerald-200">
+					<p className="text-xs text-slate-500 uppercase tracking-widest">
 						Lues
 					</p>
-					<h2 className="text-4xl font-bold text-emerald-400 mt-2">{read}</h2>
+					<h2 className="text-3xl font-bold text-emerald-600 mt-2">{read}</h2>
 				</div>
 			</div>
 
-			<div className="bg-[#1a1a2e] rounded-2xl p-4 border border-white/5 mb-6">
+			<div className="bg-white rounded-lg p-4 border border-slate-200 mb-6">
 				<div className="flex flex-col md:flex-row gap-4 justify-between">
 					<div className="relative w-full md:w-80">
 						<Search
 							size={16}
-							className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500"
+							className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
 						/>
 						<input
 							type="text"
 							placeholder="Rechercher..."
 							value={search}
 							onChange={(e) => setSearch(e.target.value)}
-							className="w-full pl-9 pr-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-white placeholder-gray-500 text-sm outline-none focus:ring-2 focus:ring-violet-500/50 focus:border-violet-500/50 transition"
+							className="w-full pl-9 pr-4 py-2.5 rounded-md bg-white border border-slate-200 text-slate-900 placeholder-slate-400 text-sm outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 transition"
 						/>
 					</div>
 
@@ -182,10 +182,10 @@ export default function NotificationsPage() {
 								<button
 									key={f}
 									onClick={() => setFilter(f)}
-									className={`px-4 py-2 rounded-xl text-sm font-medium transition-all ${
+									className={`px-4 py-2 rounded-md text-sm font-medium transition-all ${
 										active
-											? "bg-violet-600 text-white shadow shadow-violet-900/50"
-											: "bg-white/5 text-gray-400 hover:bg-white/10 hover:text-white"
+											? "bg-teal-600 text-white"
+											: "bg-slate-50 text-slate-500 hover:bg-slate-100 hover:text-slate-700"
 									}`}
 								>
 									{labels[f]}
@@ -198,46 +198,46 @@ export default function NotificationsPage() {
 
 			<div className="space-y-3">
 				{filteredNotifications.length === 0 ? (
-					<div className="bg-[#1a1a2e] rounded-2xl p-20 text-center border border-white/5">
-						<Bell size={44} className="mx-auto text-white/10 mb-4" />
-						<p className="text-gray-500">Aucune notification trouvée</p>
+					<div className="bg-white rounded-lg p-20 text-center border border-slate-200">
+						<Bell size={44} className="mx-auto text-slate-200 mb-4" />
+						<p className="text-slate-500">Aucune notification trouvée</p>
 					</div>
 				) : (
 					filteredNotifications.map((n) => (
 						<div
 							key={n.id}
-							className={`rounded-2xl p-4 border transition-all duration-200 hover:border-violet-500/30 hover:bg-white/[0.03] ${
+							className={`rounded-lg p-4 border transition-all duration-200 hover:border-teal-300 ${
 								!n.lue
-									? "bg-violet-900/10 border-violet-500/20"
-									: "bg-[#1a1a2e] border-white/5"
+									? "bg-teal-50 border-teal-200"
+									: "bg-white border-slate-200"
 							}`}
 						>
 							<div className="flex items-center gap-4">
 								<div
-									className={`w-12 h-12 rounded-xl flex-shrink-0 flex items-center justify-center ${
-										!n.lue ? "bg-violet-600/20" : "bg-white/5"
+									className={`w-12 h-12 rounded-md flex-shrink-0 flex items-center justify-center ${
+										!n.lue ? "bg-teal-100" : "bg-slate-50"
 									}`}
 								>
 									<Bell
 										size={18}
-										className={!n.lue ? "text-violet-400" : "text-gray-500"}
+										className={!n.lue ? "text-teal-600" : "text-slate-400"}
 									/>
 								</div>
 
 								<div className="flex-1 min-w-0">
 									<div className="flex items-center gap-2 mb-1">
 										{!n.lue && (
-											<span className="w-2 h-2 rounded-full bg-violet-400 flex-shrink-0" />
+											<span className="w-2 h-2 rounded-full bg-teal-600 flex-shrink-0" />
 										)}
 										<p
 											className={`text-sm truncate ${
-												!n.lue ? "text-white font-medium" : "text-gray-400"
+												!n.lue ? "text-slate-900 font-medium" : "text-slate-500"
 											}`}
 										>
 											{n.message}
 										</p>
 									</div>
-									<div className="flex items-center gap-1.5 text-gray-600 text-xs">
+									<div className="flex items-center gap-1.5 text-slate-400 text-xs">
 										<Clock size={11} />
 										<span>{timeAgo(n.dateEnvoi)}</span>
 									</div>
@@ -248,7 +248,7 @@ export default function NotificationsPage() {
 										<button
 											onClick={() => markRead(n.id)}
 											title="Marquer comme lu"
-											className="w-9 h-9 rounded-xl bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 flex items-center justify-center transition"
+											className="w-9 h-9 rounded-md bg-emerald-50 text-emerald-600 hover:bg-emerald-100 flex items-center justify-center transition"
 										>
 											<CheckCheck size={16} />
 										</button>
@@ -257,7 +257,7 @@ export default function NotificationsPage() {
 										onClick={() => del(n.id)}
 										disabled={deleting === n.id}
 										title="Supprimer"
-										className="w-9 h-9 rounded-xl bg-red-500/10 text-red-400 hover:bg-red-500/20 flex items-center justify-center transition disabled:opacity-40"
+										className="w-9 h-9 rounded-md bg-red-50 text-red-500 hover:bg-red-100 flex items-center justify-center transition disabled:opacity-40"
 									>
 										<Trash2 size={16} />
 									</button>

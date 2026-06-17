@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import LoginPage from "./features/auth/pages/LoginPage";
+import ForgotPasswordPage from "./features/auth/pages/ForgotPasswordPage";
 import DashboardPage from "./features/dashboard/DashboardPage";
 import UsersPage from "./features/users/pages/UsersPage";
 import AgentsPage from "./features/agents/pages/AgentsPage";
@@ -18,6 +19,7 @@ export default function App() {
 		<BrowserRouter>
 			<Routes>
 				<Route path="/" element={<LoginPage />} />
+				<Route path="/forgot-password" element={<ForgotPasswordPage />} />
 				<Route
 					path="/dashboard"
 					element={

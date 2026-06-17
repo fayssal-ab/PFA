@@ -1,90 +1,181 @@
+import { NavLink, useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../../features/auth/hooks/useAuth";
-import { useNavigate } from "react-router-dom";
-import { LogOut, Bell, User, Home } from "lucide-react";
-import { logout } from "../../features/auth/services/auth.service";
+import { LayoutDashboard, FileText, Bell, User, LogOut, Menu, X } from "lucide-react";
 import { DashboardLayoutProps } from "../../types";
+import { useState, useEffect } from "react";
+import api from "../../lib/axiosInstance";
 
-export default function DashboardLayout({ children, title, subtitle, actions }: DashboardLayoutProps) {
+const navItems = [
+  { to: "/dashboard", icon: LayoutDashboard, label: "Tableau de bord" },
+  { to: "/mes-reclamations", icon: FileText, label: "Mes reclamations" },
+  { to: "/notifications", icon: Bell, label: "Notifications" },
+  { to: "/profile", icon: User, label: "Mon profil" },
+];
+
+export default function DashboardLayout({
+  children,
+  title,
+  subtitle,
+  actions,
+}: DashboardLayoutProps) {
   const { user, setUser } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const [notifCount, setNotifCount] = useState(0);
+
+  useEffect(() => {
+    loadNotifCount();
+    const interval = setInterval(loadNotifCount, 30000);
+    return () => clearInterval(interval);
+  }, []);
+
+  useEffect(() => {
+    setMobileOpen(false);
+  }, [location.pathname]);
+
+  const loadNotifCount = async () => {
+    try {
+      const res = await api.get(`/notifications/count/${user?.userId}`);
+      setNotifCount(res.data);
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("refreshToken");
+    setUser(null);
+    navigate("/", { replace: true });
+  };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-gray-50 to-zinc-50 dark:from-slate-950 dark:via-gray-950 dark:to-zinc-950">
-      {/* Navbar */}
-      <nav className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border-b border-gray-200 dark:border-gray-800 sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-lg bg-gradient-to-r from-indigo-500 to-purple-600 flex items-center justify-center">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5">
-                  <path d="M12 2L2 7l10 5 10-5-10-5z"/>
-                  <path d="M2 17l10 5 10-5"/>
-                  <path d="M2 12l10 5 10-5"/>
-                </svg>
+    <div className="min-h-screen bg-slate-50">
+      <nav className="bg-white border-b border-slate-200 sticky top-0 z-40">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6">
+          <div className="flex items-center justify-between h-14">
+            <div className="flex items-center gap-8">
+              <img
+                src="/logo.png"
+                alt="ReclamaCRM"
+                className="h-8 object-contain cursor-pointer"
+                onClick={() => navigate("/dashboard")}
+              />
+
+              <div className="hidden md:flex items-center gap-1">
+                {navItems.map((item) => {
+                  const isActive = location.pathname === item.to ||
+                    (item.to !== "/dashboard" && location.pathname.startsWith(item.to));
+                  return (
+                    <NavLink
+                      key={item.to}
+                      to={item.to}
+                      className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-[13px] font-medium transition-colors relative ${
+                        isActive
+                          ? "text-teal-700 bg-teal-50"
+                          : "text-slate-500 hover:text-slate-700 hover:bg-slate-50"
+                      }`}
+                    >
+                      <item.icon size={15} strokeWidth={isActive ? 2 : 1.5} />
+                      {item.label}
+                      {item.to === "/notifications" && notifCount > 0 && (
+                        <span className="ml-1 text-[9px] bg-red-500 text-white px-1.5 py-px rounded-full font-semibold">
+                          {notifCount > 9 ? "9+" : notifCount}
+                        </span>
+                      )}
+                    </NavLink>
+                  );
+                })}
               </div>
-              <span className="font-bold text-xl bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
-                ReclamaCRM
-              </span>
-              <span className="text-xs text-gray-400 ml-2">Client</span>
             </div>
 
-            <div className="flex items-center gap-4">
-              <button
-                onClick={() => navigate("/notifications")}
-                className="relative p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
-              >
-                <Bell size={18} className="text-gray-600 dark:text-gray-400" />
-              </button>
+            <div className="flex items-center gap-2">
               <button
                 onClick={() => navigate("/profile")}
-                className="flex items-center gap-2 p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                className="hidden sm:flex items-center gap-2 py-1.5 px-2 rounded-md hover:bg-slate-50 transition-colors"
               >
-                <div className="w-8 h-8 rounded-full bg-gradient-to-r from-indigo-500 to-purple-600 flex items-center justify-center text-white text-sm font-bold">
+                <div className="w-7 h-7 rounded-full bg-teal-600 flex items-center justify-center text-white text-[10px] font-semibold">
                   {user?.nom?.charAt(0)}{user?.prenom?.charAt(0)}
                 </div>
-                <span className="hidden sm:inline text-sm text-gray-700 dark:text-gray-300">
-                  {user?.nom} {user?.prenom}
-                </span>
+                <span className="text-[13px] font-medium text-slate-700">{user?.prenom}</span>
               </button>
+
               <button
-                onClick={() => logout(setUser, navigate)}
-                className="p-2 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
-                title="Déconnexion"
+                onClick={handleLogout}
+                className="hidden sm:flex w-8 h-8 rounded-md items-center justify-center text-slate-400 hover:text-red-500 hover:bg-red-50 transition-colors"
+                title="Deconnexion"
               >
-                <LogOut size={18} className="text-red-500" />
+                <LogOut size={15} />
+              </button>
+
+              <button
+                onClick={() => setMobileOpen(!mobileOpen)}
+                className="md:hidden w-8 h-8 rounded-md flex items-center justify-center text-slate-500 hover:bg-slate-100"
+              >
+                {mobileOpen ? <X size={18} /> : <Menu size={18} />}
               </button>
             </div>
           </div>
+
+          {mobileOpen && (
+            <div className="md:hidden border-t border-slate-100 py-2 pb-3">
+              {navItems.map((item) => {
+                const isActive = location.pathname === item.to ||
+                  (item.to !== "/dashboard" && location.pathname.startsWith(item.to));
+                return (
+                  <NavLink
+                    key={item.to}
+                    to={item.to}
+                    className={`flex items-center gap-2.5 px-3 py-2.5 rounded-md text-sm font-medium transition-colors ${
+                      isActive
+                        ? "text-teal-700 bg-teal-50"
+                        : "text-slate-600 hover:bg-slate-50"
+                    }`}
+                  >
+                    <item.icon size={16} />
+                    {item.label}
+                    {item.to === "/notifications" && notifCount > 0 && (
+                      <span className="ml-auto text-[10px] bg-red-500 text-white px-1.5 py-px rounded-full font-semibold">
+                        {notifCount}
+                      </span>
+                    )}
+                  </NavLink>
+                );
+              })}
+              <div className="border-t border-slate-100 mt-2 pt-2">
+                <button
+                  onClick={handleLogout}
+                  className="flex items-center gap-2.5 px-3 py-2.5 rounded-md text-sm font-medium text-red-500 hover:bg-red-50 w-full transition-colors"
+                >
+                  <LogOut size={16} />
+                  Deconnexion
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       </nav>
 
-      {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Header */}
+      <main className="max-w-6xl mx-auto px-4 sm:px-6 py-6">
         {(title || subtitle || actions) && (
-          <div className="mb-8">
+          <div className="mb-6">
             <div className="flex flex-wrap items-center justify-between gap-4">
               <div>
                 {subtitle && (
-                  <p className="text-sm font-medium text-indigo-600 dark:text-indigo-400 uppercase tracking-wider">
+                  <p className="text-[11px] font-medium text-slate-400 uppercase tracking-wider mb-0.5">
                     {subtitle}
                   </p>
                 )}
                 {title && (
-                  <h1 className="text-2xl lg:text-3xl font-bold text-gray-900 dark:text-white mt-1">
-                    {title}
-                  </h1>
+                  <h1 className="text-xl font-semibold text-slate-900">{title}</h1>
                 )}
               </div>
-              {actions && <div>{actions}</div>}
+              {actions && <div className="flex items-center gap-2">{actions}</div>}
             </div>
           </div>
         )}
-
-        {/* Children */}
-        <div className="bg-white/50 dark:bg-slate-900/50 backdrop-blur-sm rounded-2xl border border-gray-200/50 dark:border-gray-800/50 p-6">
-          {children}
-        </div>
+        {children}
       </main>
     </div>
   );

@@ -1,16 +1,18 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { jwtDecode } from "jwt-decode";
+import { Eye, EyeOff, ArrowRight, ChevronLeft, Shield, Users, BarChart3 } from "lucide-react";
 import { useAuth } from "../hooks/useAuth";
 import { login } from "../services/auth.service";
 import { AuthUser } from "../../../types";
 
 export default function LoginPage() {
-  const [email, setEmail] = useState<string>("");
-  const [password, setPassword] = useState<string>("");
-  const [error, setError] = useState<string>("");
-  const [loading, setLoading] = useState<boolean>(false);
-  const [showPw, setShowPw] = useState<boolean>(false);
+  const [showForm, setShowForm] = useState(false);
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [showPw, setShowPw] = useState(false);
   const navigate = useNavigate();
   const { setUser } = useAuth();
 
@@ -19,78 +21,163 @@ export default function LoginPage() {
     setLoading(true);
     setError("");
     try {
-      const token = await login(email, password);
-      localStorage.setItem("token", token);
-      const decoded = jwtDecode<AuthUser>(token);
+      const { accessToken, refreshToken } = await login(email, password);
+      localStorage.setItem("token", accessToken);
+      localStorage.setItem("refreshToken", refreshToken);
+      const decoded = jwtDecode<AuthUser>(accessToken);
       decoded.role = decoded.role?.toLowerCase();
       setUser(decoded);
       navigate("/dashboard");
     } catch {
       setError("Email ou mot de passe incorrect");
-      setEmail("");
       setPassword("");
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-[#f8f7f4] flex flex-col lg:flex-row">
-      <div className="w-full lg:w-[480px] xl:w-[520px] flex flex-col justify-center px-6 sm:px-10 md:px-16 py-10 md:py-12 relative z-10 min-h-screen lg:min-h-0">
-        <div className="mb-8 md:mb-14 flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-[#1a1a2e] flex items-center justify-center">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#f8f7f4" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
-          </div>
-          <span className="text-[22px] font-bold tracking-tight text-[#1a1a2e]">ReclamaCRM</span>
-        </div>
-        <div className="mb-8 md:mb-10">
-          <h1 className="text-[32px] md:text-[38px] font-bold text-[#1a1a2e] leading-tight tracking-tight">Bon retour</h1>
-          <p className="text-[#6b7280] text-[14px] md:text-[15px] mt-2">Connectez-vous pour accéder à votre espace</p>
-        </div>
-        <form onSubmit={handleSubmit} className="space-y-5">
-          <div className="space-y-2">
-            <label className="text-[12px] font-semibold text-[#374151] uppercase tracking-wider">Email</label>
-            <input type="email" value={email} onChange={(e)=>setEmail(e.target.value)} placeholder="votre@email.com" required className="w-full h-[48px] md:h-[52px] bg-white border-2 border-[#e5e5e5] rounded-2xl px-5 text-[14px] text-[#1a1a2e] placeholder:text-[#b0b0b0] outline-none transition-all focus:border-[#1a1a2e] focus:shadow-[0_0_0_4px_rgba(26,26,46,0.06)]"/>
-          </div>
-          <div className="space-y-2">
-            <label className="text-[12px] font-semibold text-[#374151] uppercase tracking-wider">Mot de passe</label>
-            <div className="relative">
-              <input type={showPw?"text":"password"} value={password} onChange={(e)=>setPassword(e.target.value)} placeholder="••••••••" required className="w-full h-[48px] md:h-[52px] bg-white border-2 border-[#e5e5e5] rounded-2xl px-5 pr-12 text-[14px] text-[#1a1a2e] placeholder:text-[#b0b0b0] outline-none transition-all focus:border-[#1a1a2e] focus:shadow-[0_0_0_4px_rgba(26,26,46,0.06)]"/>
-              <button type="button" onClick={()=>setShowPw(!showPw)} className="absolute right-4 top-1/2 -translate-y-1/2 text-[#b0b0b0] hover:text-[#1a1a2e] transition-colors">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
-              </button>
+    <div className="min-h-screen bg-[#0c1222] flex items-center justify-center p-4 relative overflow-hidden">
+      <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: "radial-gradient(circle at 1px 1px, white 1px, transparent 0)", backgroundSize: "32px 32px" }} />
+      <div className="absolute top-[15%] -right-[5%] w-[600px] h-[600px] bg-teal-600/[0.05] rounded-full blur-[140px]" />
+      <div className="absolute bottom-[5%] -left-[10%] w-[400px] h-[400px] bg-teal-600/[0.03] rounded-full blur-[100px]" />
+
+      <div className="relative z-10 w-full max-w-[440px]">
+        {!showForm ? (
+          <div className="text-center" style={{ animation: "fadeIn 0.5s ease-out" }}>
+            <div className="mb-10">
+              <img src="/logo.png" alt="ReclamaCRM" className="h-14 object-contain mx-auto" style={{ filter: "brightness(0) invert(1)" }} />
+            </div>
+
+            <h1 className="text-3xl font-semibold text-white tracking-tight leading-tight">
+              Tableau de bord<br />d'administration
+            </h1>
+            <p className="text-slate-400 text-[15px] mt-4 leading-relaxed max-w-sm mx-auto">
+              Gerez les reclamations, suivez les performances et administrez votre plateforme.
+            </p>
+
+            <div className="flex items-center justify-center gap-4 mt-8">
+              <div className="flex items-center gap-2 text-slate-500 text-xs">
+                <Shield size={14} className="text-teal-500" /> Admin
+              </div>
+              <div className="w-1 h-1 bg-slate-700 rounded-full" />
+              <div className="flex items-center gap-2 text-slate-500 text-xs">
+                <Users size={14} className="text-teal-500" /> Manager
+              </div>
+              <div className="w-1 h-1 bg-slate-700 rounded-full" />
+              <div className="flex items-center gap-2 text-slate-500 text-xs">
+                <BarChart3 size={14} className="text-teal-500" /> Agent
+              </div>
+            </div>
+
+            <button
+              onClick={() => setShowForm(true)}
+              className="mt-10 h-12 px-8 bg-teal-600 text-white rounded-lg text-sm font-medium hover:bg-teal-700 transition-all flex items-center gap-2 mx-auto"
+            >
+              Acceder au tableau de bord
+              <ArrowRight size={16} />
+            </button>
+
+            <div className="flex items-center justify-center gap-8 mt-14 pt-8 border-t border-white/[0.06]">
+              <div>
+                <div className="text-white text-lg font-semibold">98%</div>
+                <div className="text-slate-500 text-[10px]">Resolution</div>
+              </div>
+              <div className="w-px h-6 bg-white/[0.06]" />
+              <div>
+                <div className="text-white text-lg font-semibold">2.4h</div>
+                <div className="text-slate-500 text-[10px]">Temps moyen</div>
+              </div>
+              <div className="w-px h-6 bg-white/[0.06]" />
+              <div>
+                <div className="text-white text-lg font-semibold">24/7</div>
+                <div className="text-slate-500 text-[10px]">Disponible</div>
+              </div>
             </div>
           </div>
-          {error && <div className="flex items-center gap-2 bg-red-50 text-red-600 text-[13px] font-medium px-4 py-3 rounded-xl border border-red-100">{error}</div>}
-          <button type="submit" disabled={loading} className="w-full h-[48px] md:h-[52px] bg-[#1a1a2e] text-white text-[15px] font-semibold rounded-2xl hover:bg-[#2d2d4e] active:scale-[0.98] transition-all disabled:opacity-60 flex items-center justify-center gap-2">
-            {loading ? <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"/> : <>Se connecter <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></>}
-          </button>
-        </form>
-        <p className="text-[12px] text-[#b0b0b0] mt-8 text-center">© 2026 ReclamaCRM · Tous droits réservés</p>
-      </div>
-      <div className="hidden lg:flex flex-1 relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-[#1a1a2e] via-[#16213e] to-[#0f3460]"/>
-        <div className="absolute top-20 right-20 w-72 h-72 bg-[#e94560]/10 rounded-full blur-3xl"/>
-        <div className="absolute bottom-20 left-20 w-96 h-96 bg-[#533483]/15 rounded-full blur-3xl"/>
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] border border-white/[0.04] rounded-full"/>
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[300px] h-[300px] border border-white/[0.07] rounded-full"/>
-        <div className="absolute inset-0" style={{backgroundImage:"radial-gradient(circle at 1px 1px, rgba(255,255,255,0.03) 1px, transparent 0)",backgroundSize:"40px 40px"}}/>
-        <div className="relative z-10 flex flex-col justify-center px-12 xl:px-24">
-          <div className="max-w-md">
-            <div className="inline-flex items-center gap-2 bg-white/[0.08] border border-white/[0.08] rounded-full px-4 py-2 mb-8">
-              <div className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse"/>
-              <span className="text-white/70 text-[13px]">Système opérationnel</span>
+        ) : (
+          <div style={{ animation: "slideUp 0.35s ease-out" }}>
+            <button
+              onClick={() => setShowForm(false)}
+              className="flex items-center gap-1.5 text-slate-500 hover:text-slate-300 text-xs mb-8 transition-colors"
+            >
+              <ChevronLeft size={14} />
+              Retour
+            </button>
+
+            <div className="bg-white/[0.04] border border-white/[0.06] rounded-xl p-7">
+              <div className="mb-6">
+                <img src="/logo.png" alt="ReclamaCRM" className="h-9 object-contain mb-6" style={{ filter: "brightness(0) invert(1)" }} />
+                <h2 className="text-xl font-semibold text-white">Connexion</h2>
+                <p className="text-sm text-slate-400 mt-1">Accedez a votre espace d'administration</p>
+              </div>
+
+              <form onSubmit={handleSubmit} className="space-y-4">
+                <div>
+                  <label className="block text-xs font-medium text-slate-400 mb-1.5">Email</label>
+                  <input
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="admin@reclamacrm.com"
+                    required
+                    autoComplete="email"
+                    autoFocus
+                    className="w-full h-11 px-3.5 rounded-lg bg-white/[0.05] border border-white/[0.08] text-white text-sm placeholder:text-slate-600 outline-none transition-colors focus:border-teal-500/50 focus:ring-2 focus:ring-teal-500/10"
+                  />
+                </div>
+
+                <div>
+                  <div className="flex items-center justify-between mb-1.5">
+                    <label className="text-xs font-medium text-slate-400">Mot de passe</label>
+                    <Link to="/forgot-password" className="text-[11px] text-teal-500 hover:text-teal-400 transition-colors">
+                      Mot de passe oublie ?
+                    </Link>
+                  </div>
+                  <div className="relative">
+                    <input
+                      type={showPw ? "text" : "password"}
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      required
+                      autoComplete="current-password"
+                      className="w-full h-11 px-3.5 pr-10 rounded-lg bg-white/[0.05] border border-white/[0.08] text-white text-sm outline-none transition-colors focus:border-teal-500/50 focus:ring-2 focus:ring-teal-500/10"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPw(!showPw)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300 transition-colors"
+                      tabIndex={-1}
+                    >
+                      {showPw ? <EyeOff size={15} /> : <Eye size={15} />}
+                    </button>
+                  </div>
+                </div>
+
+                {error && (
+                  <div className="text-[13px] text-red-400 bg-red-500/10 border border-red-500/20 rounded-lg px-3.5 py-2.5">
+                    {error}
+                  </div>
+                )}
+
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="w-full h-11 bg-teal-600 text-white text-sm font-medium rounded-lg hover:bg-teal-700 transition-colors disabled:opacity-50 flex items-center justify-center mt-2"
+                >
+                  {loading ? (
+                    <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                  ) : (
+                    "Se connecter"
+                  )}
+                </button>
+              </form>
             </div>
-            <h2 className="text-white text-[36px] xl:text-[44px] font-bold leading-[1.1] tracking-tight">Gérez vos<br/>réclamations<br/><span className="text-transparent bg-clip-text bg-gradient-to-r from-[#e94560] to-[#f5a623]">efficacement.</span></h2>
-            <p className="text-white/50 text-[15px] leading-relaxed mt-6 max-w-sm">Une plateforme centralisée pour suivre, assigner et résoudre toutes les réclamations.</p>
-            <div className="flex gap-8 mt-12">
-              <div><div className="text-white text-[28px] font-bold">98%</div><div className="text-white/40 text-[12px] mt-1">Taux résolution</div></div>
-              <div className="w-px bg-white/10"/>
-              <div><div className="text-white text-[28px] font-bold">2.4h</div><div className="text-white/40 text-[12px] mt-1">Temps moyen</div></div>
-              <div className="w-px bg-white/10"/>
-              <div><div className="text-white text-[28px] font-bold">1.2k</div><div className="text-white/40 text-[12px] mt-1">Réclamations/mois</div></div>
-            </div>
+
+            <p className="text-[11px] text-slate-600 text-center mt-6">
+              ReclamaCRM - Tous droits reserves
+            </p>
           </div>
-        </div>
+        )}
       </div>
     </div>
   );

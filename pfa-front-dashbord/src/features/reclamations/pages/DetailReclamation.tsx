@@ -10,7 +10,9 @@ import ReclamationHeader from "../../affectations/components/ReclamationHeader";
 import ClientFilesSection from "../../affectations/components/ClientFilesSection";
 import AgentFilesSection from "../../affectations/components/AgentFilesSection";
 
-import { MessageSquare, User, Calendar, CheckCircle } from "lucide-react";
+import { MessageSquare, User, Calendar, CheckCircle, ShieldCheck } from "lucide-react";
+import { Commentaire } from "../../../types";
+import { useAuth } from "../../auth/hooks/useAuth";
 
 export default function ReclamationDetailPage() {
 	const { id } = useParams();
@@ -25,7 +27,12 @@ export default function ReclamationDetailPage() {
 
 	const [agentFiles, setAgentFiles] = useState<PieceJointe[]>([]);
 
+	const { user: authUser } = useAuth();
+
 	const [reponses, setReponses] = useState<any[]>([]);
+
+	const [commentaires, setCommentaires] = useState<Commentaire[]>([]);
+	const [approvingId, setApprovingId] = useState<number | null>(null);
 
 	const [reponsePage, setReponsePage] = useState(0);
 
@@ -56,6 +63,7 @@ export default function ReclamationDetailPage() {
 				loadClientFiles(),
 				loadAgentFiles(),
 				loadReponses(),
+				loadCommentaires(),
 			]);
 		} catch (e) {
 			console.error(e);
@@ -123,6 +131,27 @@ export default function ReclamationDetailPage() {
 		setReponseTotalPages(res.data.page.totalPages);
 	};
 
+	const loadCommentaires = async () => {
+		try {
+			const res = await api.get<Commentaire[]>(`/commentaires/get-commentaires/${id}`);
+			setCommentaires(Array.isArray(res.data) ? res.data : []);
+		} catch (e) {
+			console.error(e);
+		}
+	};
+
+	const handleApprouverCommentaire = async (commentaireId: number) => {
+		setApprovingId(commentaireId);
+		try {
+			await api.put(`/commentaires/approuver/${commentaireId}`);
+			await loadCommentaires();
+		} catch (e) {
+			console.error(e);
+		} finally {
+			setApprovingId(null);
+		}
+	};
+
 	const downloadFile = async (filename?: string) => {
 		if (!filename) return;
 
@@ -153,7 +182,7 @@ export default function ReclamationDetailPage() {
 		return (
 			<DashboardLayout>
 				<div className="flex items-center justify-center h-[60vh]">
-					<div className="w-8 h-8 border-[3px] border-gray-200 border-t-indigo-600 rounded-full animate-spin" />
+					<div className="w-8 h-8 border-[3px] border-slate-200 border-t-teal-600 rounded-full animate-spin" />
 				</div>
 			</DashboardLayout>
 		);
@@ -185,18 +214,18 @@ export default function ReclamationDetailPage() {
 					/>
 				</div>
 
-				<div className="bg-[#111827]/80 backdrop-blur-xl rounded-3xl border border-white/10 shadow-2xl p-6">
+				<div className="bg-white rounded-lg border border-slate-200 p-5">
 					<div className="flex items-center gap-3 mb-6">
-						<div className="w-12 h-12 rounded-2xl bg-indigo-500/10 flex items-center justify-center">
-							<MessageSquare size={22} className="text-indigo-400" />
+						<div className="w-10 h-10 rounded-md bg-teal-50 flex items-center justify-center">
+							<MessageSquare size={20} className="text-teal-600" />
 						</div>
 
 						<div>
-							<h2 className="text-xl font-bold text-white">
+							<h2 className="text-lg font-bold text-slate-900">
 								Réponses de l'agent
 							</h2>
 
-							<p className="text-sm text-gray-400">
+							<p className="text-sm text-slate-500">
 								Historique des réponses de traitement
 							</p>
 						</div>
@@ -204,35 +233,35 @@ export default function ReclamationDetailPage() {
 
 					{reponses.length === 0 ? (
 						<div className="flex flex-col items-center justify-center py-14">
-							<MessageSquare size={45} className="text-gray-600 mb-3" />
+							<MessageSquare size={45} className="text-slate-300 mb-3" />
 
-							<p className="text-gray-400">Aucune réponse disponible</p>
+							<p className="text-slate-500">Aucune réponse disponible</p>
 						</div>
 					) : (
 						<div className="space-y-4">
 							{reponses.map((rep: any) => (
 								<div
 									key={rep.id}
-									className="bg-white/5 border border-white/10 rounded-2xl p-5 hover:border-indigo-500/30 transition-all"
+									className="bg-slate-50 border border-slate-200 rounded-lg p-5 hover:border-teal-300 transition-all"
 								>
 									<div className="flex justify-between items-start mb-4">
 										<div className="flex items-center gap-3">
-											<div className="w-10 h-10 rounded-xl bg-indigo-500/10 flex items-center justify-center">
-												<User size={16} className="text-indigo-300" />
+											<div className="w-10 h-10 rounded-md bg-teal-50 flex items-center justify-center">
+												<User size={16} className="text-teal-600" />
 											</div>
 
 											<div>
-												<p className="text-white font-semibold">
+												<p className="text-slate-900 font-semibold">
 													{rep.agent?.user?.nom} {rep.agent?.user?.prenom}
 												</p>
 
-												<p className="text-xs text-gray-500">
+												<p className="text-xs text-slate-500">
 													Agent responsable
 												</p>
 											</div>
 										</div>
 
-										<div className="flex items-center gap-2 text-xs text-gray-500">
+										<div className="flex items-center gap-2 text-xs text-slate-500">
 											<Calendar size={14} />
 
 											{rep.dateCreation
@@ -248,8 +277,8 @@ export default function ReclamationDetailPage() {
 										</div>
 									</div>
 
-									<div className="bg-[#0f172a]/50 rounded-xl p-4 border border-white/5">
-										<p className="text-gray-300 whitespace-pre-wrap leading-relaxed">
+									<div className="bg-white rounded-md p-4 border border-slate-200">
+										<p className="text-slate-700 whitespace-pre-wrap leading-relaxed">
 											{rep.reponse}
 										</p>
 									</div>
@@ -262,19 +291,19 @@ export default function ReclamationDetailPage() {
 							<button
 								disabled={reponsePage === 0}
 								onClick={() => setReponsePage(Math.max(0, reponsePage - 1))}
-								className="px-4 py-2 rounded-xl bg-slate-700 text-white disabled:opacity-50"
+								className="px-4 py-2 rounded-md border border-slate-200 text-slate-700 hover:bg-slate-50 disabled:opacity-50"
 							>
 								Précédent
 							</button>
 
-							<span className="text-white font-medium">
+							<span className="text-slate-900 font-medium">
 								{reponsePage + 1} / {Math.max(reponseTotalPages, 1)}
 							</span>
 
 							<button
 								disabled={reponsePage >= reponseTotalPages - 1}
 								onClick={() => setReponsePage(reponsePage + 1)}
-								className="px-4 py-2 rounded-xl bg-slate-700 text-white disabled:opacity-50"
+								className="px-4 py-2 rounded-md border border-slate-200 text-slate-700 hover:bg-slate-50 disabled:opacity-50"
 							>
 								Suivant
 							</button>
@@ -282,16 +311,90 @@ export default function ReclamationDetailPage() {
 					)}
 				</div>
 
-				<div className="bg-[#111827]/80 backdrop-blur-xl rounded-3xl border border-white/10 shadow-2xl p-6">
+				{commentaires.length > 0 && (
+					<div className="bg-white rounded-lg border border-slate-200 p-5">
+						<div className="flex items-center gap-3 mb-6">
+							<div className="w-10 h-10 rounded-md bg-purple-50 flex items-center justify-center">
+								<MessageSquare size={20} className="text-purple-600" />
+							</div>
+							<div>
+								<h2 className="text-lg font-bold text-slate-900">Commentaires</h2>
+								<p className="text-sm text-slate-500">
+									{commentaires.filter(c => c.approuveParAdmin === false).length > 0
+										? `${commentaires.filter(c => c.approuveParAdmin === false).length} en attente d'approbation`
+										: "Tous approuvés"}
+								</p>
+							</div>
+						</div>
+
+						<div className="space-y-3">
+							{commentaires.map((c) => {
+								const isPending = c.approuveParAdmin === false;
+								return (
+									<div key={c.id} className={`bg-slate-50 border rounded-lg p-4 ${isPending ? "border-amber-200" : "border-slate-200"}`}>
+										<div className="flex justify-between items-start mb-2">
+											<div className="flex items-center gap-2">
+												<div className="w-7 h-7 rounded-md bg-teal-50 flex items-center justify-center">
+													<User size={13} className="text-teal-600" />
+												</div>
+												<div>
+													<p className="text-slate-900 text-sm font-medium">
+														{c.user?.nom} {c.user?.prenom}
+													</p>
+													<p className="text-[10px] text-slate-500">{c.user?.role?.name}</p>
+												</div>
+											</div>
+											<div className="flex items-center gap-2">
+												{isPending && (
+													<span className="text-[10px] text-amber-600 bg-amber-50 px-2 py-0.5 rounded-md font-medium">
+														Non approuvé
+													</span>
+												)}
+												{c.approuveParAdmin === true && c.user?.role?.name === "agent" && (
+													<span className="text-[10px] text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-md font-medium">
+														Approuvé
+													</span>
+												)}
+												<span className="text-[10px] text-slate-500">
+													{c.dateCommentaire ? new Date(c.dateCommentaire).toLocaleString("fr-FR", { hour: "2-digit", minute: "2-digit", day: "numeric", month: "short" }) : ""}
+												</span>
+											</div>
+										</div>
+										<p className={`text-sm leading-relaxed ${isPending ? "text-slate-400" : "text-slate-700"}`}>
+											{c.contenu}
+										</p>
+										{isPending && authUser?.role === "admin" && (
+											<div className="mt-3 pt-3 border-t border-slate-200">
+												<button
+													onClick={() => handleApprouverCommentaire(c.id)}
+													disabled={approvingId === c.id}
+													className="h-7 px-3 rounded-md flex items-center gap-1.5 bg-emerald-50 text-emerald-600 hover:bg-emerald-100 transition-all text-xs font-medium disabled:opacity-50"
+												>
+													{approvingId === c.id ? (
+														<div className="w-3 h-3 border-2 border-emerald-200 border-t-emerald-600 rounded-full animate-spin" />
+													) : (
+														<><ShieldCheck size={13} /> Approuver et rendre visible au client</>
+													)}
+												</button>
+											</div>
+										)}
+									</div>
+								);
+							})}
+						</div>
+					</div>
+				)}
+
+				<div className="bg-white rounded-lg border border-slate-200 p-5">
 					<div className="flex items-center gap-3 mb-6">
-						<div className="w-12 h-12 rounded-2xl bg-emerald-500/10 flex items-center justify-center">
-							<CheckCircle size={22} className="text-emerald-400" />
+						<div className="w-10 h-10 rounded-md bg-emerald-50 flex items-center justify-center">
+							<CheckCircle size={20} className="text-emerald-600" />
 						</div>
 
 						<div>
-							<h2 className="text-xl font-bold text-white">Statut Final</h2>
+							<h2 className="text-lg font-bold text-slate-900">Statut Final</h2>
 
-							<p className="text-sm text-gray-400">
+							<p className="text-sm text-slate-500">
 								État actuel de la réclamation
 							</p>
 						</div>
@@ -299,17 +402,17 @@ export default function ReclamationDetailPage() {
 
 					<div className="flex items-center justify-between">
 						<div>
-							<p className="text-gray-400 text-sm mb-2">Statut actuel</p>
+							<p className="text-slate-500 text-sm mb-2">Statut actuel</p>
 
-							<span className="inline-flex px-4 py-2 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-300 font-semibold">
+							<span className="inline-flex px-4 py-2 rounded-md bg-emerald-50 border border-emerald-200 text-emerald-700 font-semibold">
 								{reclamation?.status?.status || "Non défini"}
 							</span>
 						</div>
 
 						<div className="text-right">
-							<p className="text-gray-500 text-xs">Réclamation</p>
+							<p className="text-slate-500 text-xs">Réclamation</p>
 
-							<p className="text-white font-semibold">#{reclamation?.id}</p>
+							<p className="text-slate-900 font-semibold">#{reclamation?.id}</p>
 						</div>
 					</div>
 				</div>

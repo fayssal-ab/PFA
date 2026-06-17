@@ -5,6 +5,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
 import com.emsi.pfa.repository.AffectationRepository;
+import com.emsi.pfa.repository.CategorieReclamationRepository;
 import com.emsi.pfa.repository.HistoriqueRepository;
 import com.emsi.pfa.repository.NotificationRepository;
 import com.emsi.pfa.repository.PriorityRepository;
@@ -24,13 +25,14 @@ import com.emsi.pfa.model.Priority;
 import com.emsi.pfa.model.Reclamation;
 import com.emsi.pfa.model.User;
 import com.emsi.pfa.model.Status;
+import com.emsi.pfa.model.Client;
+import com.emsi.pfa.model.CategorieReclamation;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Map;
 import java.util.LinkedHashMap;
-
 
 import org.springframework.security.core.Authentication;
 
@@ -49,79 +51,92 @@ public class ReclamationService {
     @Autowired 
     private AffectationRepository affectationRepository;
     @Autowired
-        private CurrentUserService currentUserService;
+    private CurrentUserService currentUserService;
     @Autowired
-        private HistoriqueRepository historiqueRepository;
+    private HistoriqueRepository historiqueRepository;
+    @Autowired
+    private CategorieReclamationRepository categorieRepository;
 
-    public Reclamation addReclamation(Reclamation reclamation) {
-            Status status = statusRepository.findByStatus("en attente")
-                .orElseThrow(() -> new RuntimeException("status introuvable"));
-          
-            reclamation.setStatus(status);
-            Reclamation savedReclamation = repo.save(reclamation);
-            List<User> managers = userRepository.findByRole_Name("manager");
-            List<User> admins = userRepository.findByRole_Name("admin");
-            for(User manager : managers){
-                Notification notification = new Notification();
-                notification.setUser(manager);
-                notification.setReclamation(savedReclamation);
-                notification.setMessage("Nouvelle réclamation est arrivé : " + reclamation.getTitre());
-                notificationRepository.save(notification);
-            }
-            for(User admin : admins){
-                Notification notification = new Notification();
-                notification.setUser(admin);
-                notification.setReclamation(reclamation);
-                notification.setMessage("Nouvelle réclamation est arrivé : #"+reclamation.getId()+" "+ reclamation.getTitre());
-                notificationRepository.save(notification);
-            }
-            return savedReclamation;
+    public Reclamation addReclamation(Reclamation reclamation, Authentication authentication) {
+        String email = authentication.getName();
+        User user = userRepository.findByEmail(email)
+            .orElseThrow(() -> new RuntimeException("Utilisateur introuvable"));
         
+        Client client = user.getClient();
+        if (client == null) {
+            throw new RuntimeException("Aucun client associé à cet utilisateur");
+        }
         
+        Status status = statusRepository.findById(1L)
+            .orElseThrow(() -> new RuntimeException("Status introuvable"));
+        
+        reclamation.setStatus(status);
+        reclamation.setClient(client);
+        reclamation.setDateDepot(LocalDateTime.now());
+        reclamation.setDateModification(LocalDateTime.now());
+        
+        Reclamation savedReclamation = repo.save(reclamation);
+        
+        // Notifications aux managers
+        List<User> managers = userRepository.findByRole_Name("manager");
+        for (User manager : managers) {
+            Notification notification = new Notification();
+            notification.setUser(manager);
+            notification.setReclamation(savedReclamation);
+            notification.setMessage("Nouvelle réclamation : " + reclamation.getTitre());
+            notification.setDateEnvoi(LocalDateTime.now());
+            notification.setLue(false);
+            notificationRepository.save(notification);
+        }
+        
+        // Notifications aux admins
+        List<User> admins = userRepository.findByRole_Name("admin");
+        for (User admin : admins) {
+            Notification notification = new Notification();
+            notification.setUser(admin);
+            notification.setReclamation(savedReclamation);
+            notification.setMessage("Nouvelle réclamation #" + savedReclamation.getId() + " - " + reclamation.getTitre());
+            notification.setDateEnvoi(LocalDateTime.now());
+            notification.setLue(false);
+            notificationRepository.save(notification);
+        }
+        
+        return savedReclamation;
     }
     
-public Reclamation getReclamation(Long id, Authentication authentication) {
-
-    String email = authentication.getName();
-
-    User user = userRepository.findByEmail(email)
+    public Reclamation getReclamation(Long id, Authentication authentication) {
+        String email = authentication.getName();
+        User user = userRepository.findByEmail(email)
             .orElseThrow(() -> new RuntimeException("Utilisateur introuvable"));
 
-    Reclamation reclamation = repo.findById(id)
+        Reclamation reclamation = repo.findById(id)
             .orElseThrow(() -> new RuntimeException("Réclamation introuvable"));
 
-    if (user.getRole().getName().equals("client")) {
-
-        if (user.getClient() == null) {
-            throw new RuntimeException("Aucun client associé");
+        if (user.getRole().getName().equals("client")) {
+            if (user.getClient() == null) {
+                throw new RuntimeException("Aucun client associé");
+            }
+            if (!reclamation.getClient().getId().equals(user.getClient().getId())) {
+                throw new RuntimeException("Accès refusé");
+            }
         }
 
-        if (!reclamation.getClient().getId()
-                .equals(user.getClient().getId())) {
-
-            throw new RuntimeException("Accès refusé");
+        if (user.getRole().getName().equals("agent")) {
+            if (user.getAgent() == null) {
+                throw new RuntimeException("Aucun agent associé");
+            }
+            boolean affectationExiste = affectationRepository
+                .existsByAgent_IdAndReclamation_Id(
+                    user.getAgent().getId(),
+                    reclamation.getId()
+                );
+            if (!affectationExiste) {
+                throw new RuntimeException("Accès refusé");
+            }
         }
+
+        return reclamation;
     }
-
-    if (user.getRole().getName().equals("agent")) {
-
-        if (user.getAgent() == null) {
-            throw new RuntimeException("Aucun agent associé");
-        }
-
-        boolean affectationExiste = affectationRepository
-                                    .existsByAgent_IdAndReclamation_Id(
-                                         user.getAgent().getId(),
-                                         reclamation.getId()
-                                    );
-
-        if (!affectationExiste) {
-            throw new RuntimeException("Accès refusé");
-        }
-    }
-
-    return reclamation;
-}
 
     public void updateReclamation(Long id, Reclamation reclamation) {
         Reclamation existingReclamation = repo.findById(id)
@@ -142,35 +157,199 @@ public Reclamation getReclamation(Long id, Authentication authentication) {
         repo.delete(reclamation);
     }
 
-    public void changeStatus(Long id, long statusId) {
+    public void changeStatus(Long id, long statusId, Authentication authentication) {
         Reclamation reclamation = repo.findById(id)
             .orElseThrow(() -> new RuntimeException("Réclamation non trouvée pour l'id: " + id));
+
         Status status = statusRepository.findById(statusId)
-            .orElseThrow(() -> new RuntimeException("status non trouvée pour l'id: " + statusId));
+            .orElseThrow(() -> new RuntimeException("Status non trouvé pour l'id: " + statusId));
+
+        String ancienStatus = reclamation.getStatus().getStatus();
+
+        reclamation.setStatus(status);
+        reclamation.setDateModification(LocalDateTime.now());
 
         User currentUser = currentUserService.getCurrentUser();
+        String role = currentUser.getRole().getName();
+
+        if ("résolu".equalsIgnoreCase(status.getStatus()) && "agent".equals(role)) {
+            reclamation.setValideeParAdmin(false);
+            reclamation.setConfirmeParClient(null);
+            repo.save(reclamation);
+
+            Historique historique = new Historique();
+            historique.setAncienStatus(ancienStatus);
+            historique.setNouveauStatus("résolu (en validation)");
+            historique.setAction("Agent a marqué la réclamation #" + reclamation.getId() + " comme résolue - en attente de validation admin");
+            historique.setReclamation(reclamation);
+            historique.setUser(currentUser);
+            historique.setDateAction(LocalDateTime.now());
+            historiqueRepository.save(historique);
+
+            List<User> admins = userRepository.findByRole_Name("admin");
+            for (User admin : admins) {
+                Notification notification = new Notification();
+                notification.setUser(admin);
+                notification.setReclamation(reclamation);
+                notification.setMessage("Réclamation #" + reclamation.getId() + " \"" + reclamation.getTitre() + "\" marquée résolue par l'agent - en attente de votre validation");
+                notification.setDateEnvoi(LocalDateTime.now());
+                notification.setLue(false);
+                notificationRepository.save(notification);
+            }
+            return;
+        }
+
+        repo.save(reclamation);
 
         Historique historique = new Historique();
-        historique.setAncienStatus(reclamation.getStatus().getStatus());
+        historique.setAncienStatus(ancienStatus);
         historique.setNouveauStatus(status.getStatus());
-        historique.setAction(
-        "Statut changé de "
-        + reclamation.getStatus().getStatus()
-        + " vers "
-        + status.getStatus()+"reclamation "+reclamation.getId()
-        );
+        historique.setAction("Statut changé de " + ancienStatus + " vers " + status.getStatus() + " pour réclamation #" + reclamation.getId());
         historique.setReclamation(reclamation);
         historique.setUser(currentUser);
         historique.setDateAction(LocalDateTime.now());
         historiqueRepository.save(historique);
 
-        reclamation.setStatus(status);
-        repo.save(reclamation);
         Notification notification = new Notification();
         notification.setUser(reclamation.getClient().getUser());
         notification.setReclamation(reclamation);
         notification.setMessage("Le statut de votre réclamation \"" + reclamation.getTitre() + "\" est maintenant : " + status.getStatus());
+        notification.setDateEnvoi(LocalDateTime.now());
+        notification.setLue(false);
         notificationRepository.save(notification);
+    }
+
+    public void validerReclamation(Long id, Authentication authentication) {
+        String email = authentication.getName();
+        User admin = userRepository.findByEmail(email)
+            .orElseThrow(() -> new RuntimeException("Utilisateur introuvable"));
+        if (!"admin".equals(admin.getRole().getName())) {
+            throw new RuntimeException("Accès refusé");
+        }
+
+        Reclamation reclamation = repo.findById(id)
+            .orElseThrow(() -> new RuntimeException("Réclamation introuvable"));
+
+        reclamation.setValideeParAdmin(true);
+        reclamation.setDateModification(LocalDateTime.now());
+        repo.save(reclamation);
+
+        Historique historique = new Historique();
+        historique.setAncienStatus("résolu (en validation)");
+        historique.setNouveauStatus("résolu (validée)");
+        historique.setAction("Admin a validé la résolution de la réclamation #" + reclamation.getId() + " et l'a envoyée au client");
+        historique.setReclamation(reclamation);
+        historique.setUser(admin);
+        historique.setDateAction(LocalDateTime.now());
+        historiqueRepository.save(historique);
+
+        Notification notification = new Notification();
+        notification.setUser(reclamation.getClient().getUser());
+        notification.setReclamation(reclamation);
+        notification.setMessage("Votre réclamation \"" + reclamation.getTitre() + "\" a été résolue. Veuillez confirmer ou nous faire part de votre retour.");
+        notification.setDateEnvoi(LocalDateTime.now());
+        notification.setLue(false);
+        notificationRepository.save(notification);
+    }
+
+    public void confirmerReclamation(Long id, Authentication authentication) {
+        String email = authentication.getName();
+        User user = userRepository.findByEmail(email)
+            .orElseThrow(() -> new RuntimeException("Utilisateur introuvable"));
+        if (user.getClient() == null) {
+            throw new RuntimeException("Accès refusé");
+        }
+
+        Reclamation reclamation = repo.findById(id)
+            .orElseThrow(() -> new RuntimeException("Réclamation introuvable"));
+        if (!reclamation.getClient().getId().equals(user.getClient().getId())) {
+            throw new RuntimeException("Accès refusé");
+        }
+
+        reclamation.setConfirmeParClient(true);
+        reclamation.setDateModification(LocalDateTime.now());
+        repo.save(reclamation);
+
+        Historique historique = new Historique();
+        historique.setAncienStatus("résolu (validée)");
+        historique.setNouveauStatus("fermée");
+        historique.setAction("Client a confirmé la résolution de la réclamation #" + reclamation.getId());
+        historique.setReclamation(reclamation);
+        historique.setUser(user);
+        historique.setDateAction(LocalDateTime.now());
+        historiqueRepository.save(historique);
+
+        List<User> admins = userRepository.findByRole_Name("admin");
+        for (User a : admins) {
+            Notification notification = new Notification();
+            notification.setUser(a);
+            notification.setReclamation(reclamation);
+            notification.setMessage("Le client a confirmé la résolution de la réclamation #" + reclamation.getId() + " \"" + reclamation.getTitre() + "\"");
+            notification.setDateEnvoi(LocalDateTime.now());
+            notification.setLue(false);
+            notificationRepository.save(notification);
+        }
+    }
+
+    public void rejeterReclamation(Long id, String feedback, Authentication authentication) {
+        String email = authentication.getName();
+        User user = userRepository.findByEmail(email)
+            .orElseThrow(() -> new RuntimeException("Utilisateur introuvable"));
+        if (user.getClient() == null) {
+            throw new RuntimeException("Accès refusé");
+        }
+
+        Reclamation reclamation = repo.findById(id)
+            .orElseThrow(() -> new RuntimeException("Réclamation introuvable"));
+        if (!reclamation.getClient().getId().equals(user.getClient().getId())) {
+            throw new RuntimeException("Accès refusé");
+        }
+
+        Status enAttente = statusRepository.findById(1L)
+            .orElseThrow(() -> new RuntimeException("Status introuvable"));
+
+        String ancienStatus = reclamation.getStatus().getStatus();
+        reclamation.setStatus(enAttente);
+        reclamation.setValideeParAdmin(null);
+        reclamation.setConfirmeParClient(false);
+        reclamation.setDateModification(LocalDateTime.now());
+        repo.save(reclamation);
+
+        Historique historique = new Historique();
+        historique.setAncienStatus(ancienStatus);
+        historique.setNouveauStatus("en attente (rejetée par client)");
+        historique.setAction("Client a rejeté la résolution de la réclamation #" + reclamation.getId() + " - Feedback: " + feedback);
+        historique.setReclamation(reclamation);
+        historique.setUser(user);
+        historique.setDateAction(LocalDateTime.now());
+        historiqueRepository.save(historique);
+
+        List<User> admins = userRepository.findByRole_Name("admin");
+        List<User> managers = userRepository.findByRole_Name("manager");
+
+        List<User> toNotify = new ArrayList<>();
+        toNotify.addAll(admins);
+        toNotify.addAll(managers);
+
+        for (User u : toNotify) {
+            Notification notification = new Notification();
+            notification.setUser(u);
+            notification.setReclamation(reclamation);
+            notification.setMessage("Le client a rejeté la résolution de la réclamation #" + reclamation.getId() + " \"" + reclamation.getTitre() + "\" - Feedback: " + feedback);
+            notification.setDateEnvoi(LocalDateTime.now());
+            notification.setLue(false);
+            notificationRepository.save(notification);
+        }
+    }
+
+    public void changePriority(Long id, Long priorityId) {
+        Reclamation reclamation = repo.findById(id)
+            .orElseThrow(() -> new RuntimeException("Réclamation introuvable"));
+        Priority priority = priorityRepository.findById(priorityId)
+            .orElseThrow(() -> new RuntimeException("Priorité introuvable"));
+        reclamation.setPriority(priority);
+        reclamation.setDateModification(LocalDateTime.now());
+        repo.save(reclamation);
     }
 
     public Page<Reclamation> getAllReclamations(int page, int size) {
@@ -178,9 +357,9 @@ public Reclamation getReclamation(Long id, Authentication authentication) {
         return repo.findAll(pageable);
     }
 
-    public Page<Reclamation> getReclamationByClient(Long clienId ,int page, int size){
+    public Page<Reclamation> getReclamationByClient(Long clientId, int page, int size) {
         Pageable pageable = PageRequest.of(page, size, Sort.by("dateDepot").descending());
-        return repo.findByClientId(clienId, pageable);
+        return repo.findByClientId(clientId, pageable);
     }
 
     public Page<Reclamation> filterReclamations(Long statusId, Long priorityId, Long categorieId, int page, int size) {
@@ -207,15 +386,6 @@ public Reclamation getReclamation(Long id, Authentication authentication) {
             return repo.findByCategorieId(categorieId, pageable);
         }
         return repo.findAll(pageable);
-    }
-
-    public void changePriority(Long id, Long priorityId){
-        Reclamation reclamation = repo.findById(id)
-            .orElseThrow(() -> new RuntimeException("réclamation introuvable"));
-        Priority priority = priorityRepository.findById(priorityId)
-            .orElseThrow(() -> new RuntimeException("priorité introuvable"));
-        reclamation.setPriority(priority);
-        repo.save(reclamation);
     }
 
     public Map<String, Long> getStatistiques() {
