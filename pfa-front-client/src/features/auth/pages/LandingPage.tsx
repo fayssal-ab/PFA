@@ -40,6 +40,12 @@ export default function LandingPage() {
             >
               Se connecter
             </button>
+              <button
+              onClick={() => navigate("/register")}
+              className="h-9 px-4 rounded-lg text-sm font-medium text-slate-700 hover:bg-slate-50 transition-colors"
+            >
+              S'inscrire
+            </button>
             <button
               onClick={() => navigate("/login")}
               className="h-9 px-5 rounded-lg bg-[#0c1222] text-white text-sm font-medium hover:bg-[#161f33] transition-colors"
@@ -144,6 +150,7 @@ export default function LandingPage() {
               Se connecter
               <ChevronRight size={16} />
             </button>
+
           </div>
         </div>
       </section>

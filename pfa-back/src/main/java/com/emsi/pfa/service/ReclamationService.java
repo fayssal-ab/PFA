@@ -67,7 +67,7 @@ public class ReclamationService {
             throw new RuntimeException("Aucun client associé à cet utilisateur");
         }
         
-        Status status = statusRepository.findById(1L)
+        Status status = statusRepository.findById(2L)
             .orElseThrow(() -> new RuntimeException("Status introuvable"));
         
         reclamation.setStatus(status);

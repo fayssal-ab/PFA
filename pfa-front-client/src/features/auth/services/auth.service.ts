@@ -18,3 +18,25 @@ export function logout(setUser: (user: AuthUser | null) => void, navigate: Navig
   setUser(null);
   navigate("/", { replace: true });
 }
+
+export interface RegisterClientDto {
+  adresse: string;
+  telephone: string;
+  user: {
+    nom: string;
+    prenom: string;
+    email: string;
+    password: string;
+  };
+}
+
+export const registerClient = async (
+  data: RegisterClientDto
+) => {
+  const response = await api.post(
+    "/clients/register-client",
+    data
+  );
+
+  return response.data;
+};
